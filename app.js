@@ -75,12 +75,6 @@ spotifyApi
         // console.log('access_token:', access_token);
         // console.log('refresh_token:', refresh_token);
   
-        // console.log(
-        //   `Sucessfully retreived access token. Expires in ${expires_in} s.`
-        // );
-
-        res.redirect('/audiofeatures');
-  
         setInterval(async () => {
           const data = await spotifyApi.refreshAccessToken();
           const access_token = data.body['access_token'];
@@ -94,6 +88,8 @@ spotifyApi
         console.error('Error getting Tokens:', error);
         res.send(`Error getting Tokens: ${error}`);
       });
+
+      res.redirect('/audiofeatures');
   });
 
 function getAudioFeatures() {
@@ -110,35 +106,42 @@ app.get('/audiofeatures', (req, res) => {
     let i=0;
     var intervalID=setInterval(async ()=> {
         const me= await spotifyApi.getAudioFeaturesForTrack(jsonData[i].message_item_uri.split(":")[2]);
-        // console.log(i+" : "+me.body.tempo);
+        const me1= await spotifyApi.getTrack(jsonData[i].message_item_uri.split(":")[2]);
         if(dict[Math.floor(me.body.tempo)]==undefined)
         {
-          dict[Math.floor(me.body.tempo)] = new Array(jsonData[i].message_item_uri.split(":")[2]);
+          dict[Math.floor(me.body.tempo)] = new Array({track: me1.body.name, trackID: jsonData[i].message_item_uri.split(":")[2]});
         }
         else
         {
-          console.log(i+" : "+jsonData[i].message_item_uri.split(":")[2]);
-          dict[Math.floor(me.body.tempo)].push(jsonData[i].message_item_uri.split(":")[2]);
+          // console.log(i+" : "+jsonData[i].message_item_uri.split(":")[2]);
+          dict[Math.floor(me.body.tempo)].push({track: me1.body.name, trackID: jsonData[i].message_item_uri.split(":")[2]});
         }
-   
-        res.write('<h1>'+i+' Track ID#: ' + jsonData[i].message_item_uri.split(":")[2] +' | Tempo: '+ me.body.tempo + '</h1>');
+        console.log('Track Name: '+ me1.body.name +' | Track ID#: ' + jsonData[i].message_item_uri.split(":")[2] +' | Tempo: '+ me.body.tempo );
+        // res.write('<h1> Track Name: '+ me1.body.name +' | Track ID#: ' + jsonData[i].message_item_uri.split(":")[2] +' | Tempo: '+ me.body.tempo + '</h1>');
 
         i++;
 
         if(i==jsonData.length)
         {
             clearInterval(intervalID);
-            res.end();
             var dictstring=JSON.stringify(dict);
             fs.writeFile("qp_dataset.json", dictstring, function(err, result) {
               if(err) console.log('error', err);
             });
 
+            return res.redirect('/qpInterface');
         }
-    }, 1000);
+    }, 2000);
+
+});  
 
 
-  });  
+app.get('/qpInterface',(req, res)=>{
+    res.sendFile(__dirname + '/public/qpInterface.html');
+    // res.sendFile(__dirname + '/interface.js');
+
+});
+
 
 app.listen(8888, () =>
    console.log(
