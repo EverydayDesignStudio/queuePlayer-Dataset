@@ -4,6 +4,7 @@ var SpotifyWebApi = require('spotify-web-api-node');
 var cors = require('cors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
+var fs= require('fs');
 
 var access_token;
 var af;
@@ -109,15 +110,30 @@ app.get('/audiofeatures', (req, res) => {
     let i=0;
     var intervalID=setInterval(async ()=> {
         const me= await spotifyApi.getAudioFeaturesForTrack(jsonData[i].message_item_uri.split(":")[2]);
-        console.log(i+" : "+me.body.tempo);
-        i++;
+        // console.log(i+" : "+me.body.tempo);
+        if(dict[Math.floor(me.body.tempo)]==undefined)
+        {
+          dict[Math.floor(me.body.tempo)] = new Array(jsonData[i].message_item_uri.split(":")[2]);
+        }
+        else
+        {
+          console.log(i+" : "+jsonData[i].message_item_uri.split(":")[2]);
+          dict[Math.floor(me.body.tempo)].push(jsonData[i].message_item_uri.split(":")[2]);
+        }
+   
+        res.write('<h1>'+i+' Track ID#: ' + jsonData[i].message_item_uri.split(":")[2] +' | Tempo: '+ me.body.tempo + '</h1>');
 
-        res.write('<h1>Track ID#: ' + jsonData[i].message_item_uri.split(":")[2] +' | Tempo: '+ me.body.tempo + '</h1>');
+        i++;
 
         if(i==jsonData.length)
         {
             clearInterval(intervalID);
             res.end();
+            var dictstring=JSON.stringify(dict);
+            fs.writeFile("qp_dataset.json", dictstring, function(err, result) {
+              if(err) console.log('error', err);
+            });
+
         }
     }, 1000);
 
