@@ -1,0 +1,112 @@
+<!doctype html>
+<html>
+  <head>
+    <title>QueuePlayer Interface</title>
+    <style type="text/css">
+      #login, #loggedin {
+        display: none;
+      }
+      .text-overflow {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 500px;
+      }
+
+      table, th, td {
+        border: 1px solid;
+      }
+      table, tr {
+        width: 100%;
+      }
+      td{
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <p>Use any key - Start tapping to measure BPM
+    <table>
+      <tr>
+        <form id='TAP_DISPLAY'>
+        <td>
+          <table border=0 cellpadding=3 cellspacing=0 bgcolor='#666666'>
+            <tr>
+              <td>
+                <table border=0 cellpadding=4 cellspacing=0 bgcolor="#CCCCCC">
+                  <tr>
+                    <td align=right><font color='#000000'><tt>Average BPM</tt>
+                      <input readonly id='T_AVG' size=12>
+                    </td>
+    
+    <!-- </tr><tr> -->
+    
+                    <td align=right><font color='#000000'><tt>Nearest Whole</tt>
+                      <input readonly id='T_WHOLE' size=12>
+                    </td>
+  
+    <!-- <td></td> -->
+    
+    <!-- </tr><tr> -->
+    
+    <!-- <td> </td> -->
+    
+                    <td align=right><font color='#000000'><tt>Timing Taps</tt>
+                      <input readonly id='T_TAP' size=12>
+                    </td>
+    
+    <!-- <td> </td> -->
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td align=center>
+          Pause
+          <select id='T_WAIT'>
+            <option value='1'>1</option>
+            <option value='2' SELECTED>2</option>
+            <option value='3'>3</option>
+            <option value='4'>4</option>
+            <option value='5'>5</option>
+          </select>
+          second(s) or
+          <input type="button" id='T_RESET' value="RESET" onclick="resetCount()">
+          to start again
+        </td>
+        </form>
+      </tr>
+      <tr>
+        <td>
+          Sort according to : 
+          <select id='T_TYPE'>
+            <option value='tempo'>tempo</option>
+            <option value='danceability' SELECTED>danceability</option>
+            <option value='energy'>energy</option>
+            <option value='liveness'>liveness</option>
+            <option value='valence'>valence</option>
+            <option value='mode'>mode</option>
+            <option value='time_signature'>time_signature</option>
+          </select>
+          <input type="button" id='T_SELECT' value="SELECT" onclick="rearrangeQueue()">
+        </td>
+      </tr>
+      
+      <tr>
+        <td>Touchscreen click here &gt; <input id='T_FOCUS' size=2 maxLength=1> &lt; to activate keyboard</td>
+      </tr>
+    </table>
+      <!-- <h1> Welcome to Queue Player Interface </h1>
+      <form name="qp" method="get">
+        Enter the BPM: <br>
+        <input type="number" name="bpm" value=""> <p>
+        <input type="button" name="button"  value="Click" onClick="testResults(this.form);">  
+      </form> -->
+    <div id='queue'></div>
+  </body>
+  <script src="../js/interface.js"></script>
+
+</html>

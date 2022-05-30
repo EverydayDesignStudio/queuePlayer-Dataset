@@ -10,7 +10,7 @@ var access_token;
 var af;
 var dict = {};
 var trackID_tracker = {}
-var trackIDCollection = new Array();
+var trackIdCollection = new Array();
 
 const scopes = [
     'ugc-image-upload',
@@ -42,13 +42,11 @@ var spotifyApi = new SpotifyWebApi({
 
 const app = express();
 
-const jsonData= require('./public/Spotify Data/Samann/endsong_1.json'); 
-segregateDataBy100(jsonData)
+// const jsonData= require('./public/Spotify Data/Samann/endsong_7.json'); 
+// segregateDataBy100(jsonData)
 
 const appendData = require('./public/Final Database/test.json');
 const id_checker = require('./public/Final Database/keys.json');
-// console.log(appendData[30])
-
 
 app.use(express.static(__dirname + '/public'))
    .use(cors())
@@ -102,7 +100,7 @@ spotifyApi
 function segregateDataBy100(jsonData) {
   let count=0;
   let j=0;
-  trackIDCollection[0]=new Array();
+  trackIdCollection[0]=new Array();
   console.log(jsonData.length);
   for (let i=0; i<jsonData.length;i++)
   {
@@ -114,21 +112,21 @@ function segregateDataBy100(jsonData) {
     {
       if(count==99)
       {
-        trackIDCollection[j].push(jsonData[i].spotify_track_uri.split(":")[2]);
+        trackIdCollection[j].push(jsonData[i].spotify_track_uri.split(":")[2]);
         j++;
-        trackIDCollection.push(new Array());
+        trackIdCollection.push(new Array());
         count=0;
       }
       else
       {
-        trackIDCollection[j].push(jsonData[i].spotify_track_uri.split(":")[2]);
+        trackIdCollection[j].push(jsonData[i].spotify_track_uri.split(":")[2]);
         count++;
       }
     }
     
   }
 
-  return trackIDCollection;
+  return trackIdCollection;
 
 }
 
@@ -138,7 +136,8 @@ app.get('/audiofeatures', (req, res) => {
     
     let i=0; 
     var intervalID=setInterval(async ()=> {
-      const me= await spotifyApi.getAudioFeaturesForTracks(trackIDCollection[i]);
+      const me= await spotifyApi.getAudioFeaturesForTracks(trackIdCollection[i]);
+
       for(let j=0; j<me.body.audio_features.length;j++)
       {
         if(me.body.audio_features[j].speechiness > 0 && me.body.audio_features[j].speechiness < 0.66)
@@ -153,7 +152,7 @@ app.get('/audiofeatures', (req, res) => {
             if(appendData[Math.floor(me.body.audio_features[j].tempo)]==undefined)
             {
               // dict[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 1, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
-              appendData[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 1, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+              appendData[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 1, track_id: me.body.audio_features[j].uri.split(":")[2],  tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
             }
             else
             {
@@ -165,7 +164,7 @@ app.get('/audiofeatures', (req, res) => {
       }
       console.log("Iteration Done : " + i);
       i++;
-      if(i==trackIDCollection.length)
+      if(i==trackIdCollection.length)
       {
           clearInterval(intervalID);
 
@@ -189,7 +188,7 @@ app.get('/audiofeatures', (req, res) => {
 
 
 app.get('/qpInterface',(req, res)=>{
-    res.sendFile(__dirname + '/public/qpInterface.html');
+    res.sendFile(__dirname + '/public/html/qpInterface.html');
 });
 
 
