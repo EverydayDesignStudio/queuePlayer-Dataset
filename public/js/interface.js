@@ -76,6 +76,8 @@ function clearResults(){
 
 
 var trackArr=[];
+var flg=0
+
 
 var qpData;
 function testResults(avgBPM) {
@@ -85,29 +87,32 @@ function testResults(avgBPM) {
     return response.json();
   })
   .then(qpDataset=>{
-    qpDataset[bpm].sort((first,second) => {
-      if(document.getElementById('T_TYPE').value=='danceability'){
-        return second.danceability - first.danceability;
-      }
-      else if(document.getElementById('T_TYPE').value=='energy'){
-        return second.energy - first.energy;
-      }
-      else if(document.getElementById('T_TYPE').value=='liveness'){
-        return second.liveness - first.liveness;
-      }
-      else if(document.getElementById('T_TYPE').value=='valence'){
-        return second.valence - first.valence;
-      }
-      else if(document.getElementById('T_TYPE').value=='tempo'){
-        return second.tempo - first.tempo;
-      }
-      else if(document.getElementById('T_TYPE').value=='mode'){
-        return second.mode - first.mode;
-      }
-      else if(document.getElementById('T_TYPE').value=='time_signature'){
-        return second.time_signature - first.time_signature;
-      }
-    });
+    if(qpDataset[bpm]!=null)
+    {
+      qpDataset[bpm].sort((first,second) => {
+          if(document.getElementById('T_TYPE').value=='danceability'){
+            return second.danceability - first.danceability;
+          }
+          else if(document.getElementById('T_TYPE').value=='energy'){
+            return second.energy - first.energy;
+          }
+          else if(document.getElementById('T_TYPE').value=='liveness'){
+            return second.liveness - first.liveness;
+          }
+          else if(document.getElementById('T_TYPE').value=='valence'){
+            return second.valence - first.valence;
+          }
+          else if(document.getElementById('T_TYPE').value=='tempo'){
+            return second.tempo - first.tempo;
+          }
+          else if(document.getElementById('T_TYPE').value=='mode'){
+            return second.mode - first.mode;
+          }
+          else if(document.getElementById('T_TYPE').value=='time_signature'){
+            return second.time_signature - first.time_signature;
+          }
+      });
+    }
 
     // h1=document.createElement('h1');
     // h1.appendChild(document.createTextNode("Queue Playlist"));
@@ -126,6 +131,7 @@ function testResults(avgBPM) {
         trackArr.push("spotify:track:"+qpDataset[bpm][i].track_id);
         if(i == qpDataset[bpm].length-1)
         {
+          flg=0;
           playSongs();
         }
         appendTracks(qpDataset[bpm][i]);
@@ -168,7 +174,6 @@ const createQueueTable = () => {
 }
 
 
-var flg=0
 function playSongs(){ 
 
   if(trackArr!="" && flg==0)
