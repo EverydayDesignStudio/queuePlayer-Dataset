@@ -5,12 +5,14 @@ var cors = require('cors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
 var fs= require('fs');
+var bodyParser = require("body-parser");
 
 var access_token;
 var af;
 var dict = {};
 var trackID_tracker = {}
 var trackIdCollection = new Array();
+
 
 const scopes = [
     'ugc-image-upload',
@@ -41,6 +43,7 @@ var spotifyApi = new SpotifyWebApi({
 });
 
 const app = express();
+app.use(bodyParser.json());
 
 // const jsonData= require('./public/Spotify Data/Samann/endsong_7.json'); 
 // segregateDataBy100(jsonData)
@@ -94,7 +97,10 @@ spotifyApi
         res.send(`Error getting Tokens: ${error}`);
       });
 
-      res.redirect('/audiofeatures');
+      if(access_token !=null)
+      {
+        res.redirect('/qpInterface');
+      }
   });
 
 function segregateDataBy100(jsonData) {
@@ -188,7 +194,25 @@ app.get('/audiofeatures', (req, res) => {
 
 
 app.get('/qpInterface',(req, res)=>{
-    res.sendFile(__dirname + '/public/html/qpInterface.html');
+
+  // res.setHeader('Content-Type', 'application/json');
+
+  res.sendFile(__dirname + '/public/html/qpInterface.html');
+    
+});
+
+
+
+app.post('/playback', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  const play= spotifyApi.play({
+    "uris": req.body
+  }).then(function() {
+      console.log('Playback started');
+    }, function(err) {
+      //if the user making the request is non-premium, a 403 FORBIDDEN response code will be returned
+      console.log('Something went wrong!', err);
+  });
 });
 
 

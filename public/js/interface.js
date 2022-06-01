@@ -74,6 +74,9 @@ function clearResults(){
   }
 }
 
+
+var trackArr=[];
+
 var qpData;
 function testResults(avgBPM) {
   let bpm = avgBPM
@@ -120,11 +123,19 @@ function testResults(avgBPM) {
         // h3.appendChild(document.createTextNode("Track ID: " + qpDataset[bpm][i].track_id + " Tempo : "+ qpDataset[bpm][i].tempo));
         // h3.appendChild(document.createElement('br'));
         // document.body.appendChild(h3);
-
+        trackArr.push("spotify:track:"+qpDataset[bpm][i].track_id);
+        if(i == qpDataset[bpm].length-1)
+        {
+          playSongs();
+        }
         appendTracks(qpDataset[bpm][i]);
     }
   }); 
 }
+
+
+
+
 
 //Creation of Table of Tracks
 
@@ -161,8 +172,32 @@ const createQueueTable = () => {
 }
 
 
-
+var flg=0
+function playSongs(){ 
+  if(trackArr!="" && flg==0)
+  {
+    fetch("/playback", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(trackArr),
+    })
+    .then(response => {
+      if(!response.ok)
+      {
+        console.error(response)
+      }
+      else
+      {
+        return response.json();
+      }
+      })
+    flg=1;
+  }
+}
 const appendTracks=(track) =>{
+
   const queueTableBody = document.getElementById('queueTableBody');
 
   let queueTableBodyRow = document.createElement('tr');
@@ -203,3 +238,4 @@ const appendTracks=(track) =>{
 function rearrangeQueue(){
   testResults(Math.round(bpmAvg));
 }
+
