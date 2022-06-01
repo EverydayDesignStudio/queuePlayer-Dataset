@@ -36,7 +36,6 @@ function tapBPM(e){
     bpmAvg=60000*count/(millisecondsCurr-millisecondsFirst);
     document.getElementById('T_AVG').value = Math.round(bpmAvg * 100) / 100;
     document.getElementById('T_WHOLE').value = Math.round(bpmAvg);
-    console.log(Math.round(bpmAvg * 100) / 100);
     count++;
     document.getElementById('T_TAP').value = count;
   }
@@ -54,6 +53,7 @@ var lol=setInterval(function(){
     {
       clearResults();
     }
+    trackArr=[];
     testResults(Math.round(bpmAvg));
     flag=0;
   }
@@ -133,10 +133,6 @@ function testResults(avgBPM) {
   }); 
 }
 
-
-
-
-
 //Creation of Table of Tracks
 
 var queueDiv=document.getElementById('queue');
@@ -174,6 +170,7 @@ const createQueueTable = () => {
 
 var flg=0
 function playSongs(){ 
+
   if(trackArr!="" && flg==0)
   {
     fetch("/playback", {
@@ -192,7 +189,7 @@ function playSongs(){
       {
         return response.json();
       }
-      })
+    })
     flg=1;
   }
 }
