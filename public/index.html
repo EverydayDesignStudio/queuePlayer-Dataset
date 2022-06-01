@@ -1,24 +1,13 @@
 <!doctype html>
 <html>
   <head>
-    <title>QueuePlayer Login</title>
-    <style type="text/css">
-      #login, #loggedin {
-        display: none;
-      }
-      .text-overflow {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        width: 500px;
-      }
-    </style>
+    <title>QueuePlayer</title>
+    <link rel="stylesheet" href="index.css">
   </head>
   <body>
-      <h1> Hello Ayush </h1>
-      <button type="button">
-        <!-- <a href="/qpInterface">qpInterface</a> -->
-        <a href="/Login">Login</a>
+      <h1 id="welcome"> Welcome to Queue Player </h1>
+      <button type="button" id="login" onclick="window.location.href='/Login'">
+        Login
       </button>
   </body>
 </html>

@@ -53,8 +53,8 @@ var lol=setInterval(function(){
     {
       clearResults();
     }
-    trackArr=[];
     testResults(Math.round(bpmAvg));
+    trackArr=[];
     flag=0;
   }
 },1000);
@@ -77,18 +77,21 @@ function clearResults(){
 
 var trackArr=[];
 var flg=0
+var bpmPrev=0;
+var qpDataset;
 
+fetch("../Final Database/test.json")
+.then(response => {
+  return response.json();
+}).then(qpData=>{
+  qpDataset=qpData;
+})
 
-var qpData;
 function testResults(avgBPM) {
-  let bpm = avgBPM
-  fetch("../Final Database/test.json")
-  .then(response => {
-    return response.json();
-  })
-  .then(qpDataset=>{
+  let bpm = avgBPM;
     if(qpDataset[bpm]!=null)
     {
+      trackArr=[];
       qpDataset[bpm].sort((first,second) => {
           if(document.getElementById('T_TYPE').value=='danceability'){
             return second.danceability - first.danceability;
@@ -136,7 +139,6 @@ function testResults(avgBPM) {
         }
         appendTracks(qpDataset[bpm][i]);
     }
-  }); 
 }
 
 //Creation of Table of Tracks
