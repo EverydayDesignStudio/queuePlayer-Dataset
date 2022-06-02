@@ -61,24 +61,11 @@ var lol=setInterval(function(){
 
 
 // Reading the JSON file data
-function clearResults(){
-  var child = h1.firstChild;
-  while (child) {
-    h1.removeChild(child);
-    child = h1.firstChild;
-  }
-  var child = h3.firstChild;
-  while (child) {
-    h3.removeChild(child);
-    child = h3.firstChild;
-  }
-}
-
-
 var trackArr=[];
 var flg=0
 var bpmPrev=0;
 var qpDataset;
+var currFeatures;
 
 fetch("../Final Database/test.json")
 .then(response => {
@@ -91,58 +78,88 @@ function testResults(avgBPM) {
   let bpm = avgBPM;
     if(qpDataset[bpm]!=null)
     {
-      trackArr=[];
-      qpDataset[bpm].sort((first,second) => {
-          if(document.getElementById('T_TYPE').value=='danceability'){
-            return second.danceability - first.danceability;
-          }
-          else if(document.getElementById('T_TYPE').value=='energy'){
-            return second.energy - first.energy;
-          }
-          else if(document.getElementById('T_TYPE').value=='liveness'){
-            return second.liveness - first.liveness;
-          }
-          else if(document.getElementById('T_TYPE').value=='valence'){
-            return second.valence - first.valence;
-          }
-          else if(document.getElementById('T_TYPE').value=='tempo'){
-            return second.tempo - first.tempo;
-          }
-          else if(document.getElementById('T_TYPE').value=='mode'){
-            return second.mode - first.mode;
-          }
-          else if(document.getElementById('T_TYPE').value=='time_signature'){
-            return second.time_signature - first.time_signature;
-          }
-      });
-    }
-
-    // h1=document.createElement('h1');
-    // h1.appendChild(document.createTextNode("Queue Playlist"));
-    // h1.appendChild(document.createElement('br'));
-    // document.body.appendChild(h1);
-
-    // h3=document.createElement('h3');
-
-    createQueueTable();
-
-    for(let i=0;i<qpDataset[bpm].length;i++)
-    {
-        // h3.appendChild(document.createTextNode("Track ID: " + qpDataset[bpm][i].track_id + " Tempo : "+ qpDataset[bpm][i].tempo));
-        // h3.appendChild(document.createElement('br'));
-        // document.body.appendChild(h3);
-        trackArr.push("spotify:track:"+qpDataset[bpm][i].track_id);
-        if(i == qpDataset[bpm].length-1)
-        {
-          flg=0;
-          playSongs();
+      fetch("/getCurrentID", {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         }
-        appendTracks(qpDataset[bpm][i]);
+      })
+      .then(response => response.json())
+      .then(data => {
+          currFeatures=data;
+          console.log(currFeatures.danceability);
+
+
+          trackArr=[];
+          qpDataset[bpm].sort((first,second) => {
+            if(document.getElementById('T_TYPE').value=='danceability'){
+              return first.danceability - second.danceability;
+            }
+              else if(document.getElementById('T_TYPE').value=='energy'){
+                return second.energy - first.energy;
+              }
+              else if(document.getElementById('T_TYPE').value=='liveness'){
+                return second.liveness - first.liveness;
+              }
+              else if(document.getElementById('T_TYPE').value=='valence'){
+                return second.valence - first.valence;
+              }
+              else if(document.getElementById('T_TYPE').value=='tempo'){
+                return second.tempo - first.tempo;
+              }
+              else if(document.getElementById('T_TYPE').value=='mode'){
+                return second.mode - first.mode;
+              }
+              else if(document.getElementById('T_TYPE').value=='time_signature'){
+                return second.time_signature - first.time_signature;
+              }
+          });
+          qpDataset[bpm].sort((first,second) => {
+            if(document.getElementById('T_TYPE').value=='danceability'){
+              console.log("first ",first.danceability, Math.abs(first.danceability-currFeatures.danceability))
+              console.log("second ",second.danceability,Math.abs(second.danceability-currFeatures.danceability))
+              return (Math.abs(first.danceability-currFeatures.danceability)) - (Math.abs(second.danceability-currFeatures.danceability));
+            }
+              else if(document.getElementById('T_TYPE').value=='energy'){
+                return second.energy - first.energy;
+              }
+              else if(document.getElementById('T_TYPE').value=='liveness'){
+                return second.liveness - first.liveness;
+              }
+              else if(document.getElementById('T_TYPE').value=='valence'){
+                return second.valence - first.valence;
+              }
+              else if(document.getElementById('T_TYPE').value=='tempo'){
+                return second.tempo - first.tempo;
+              }
+              else if(document.getElementById('T_TYPE').value=='mode'){
+                return second.mode - first.mode;
+              }
+              else if(document.getElementById('T_TYPE').value=='time_signature'){
+                return second.time_signature - first.time_signature;
+              }
+          });
+
+          createQueueTable();
+
+          for(let i=0;i<qpDataset[bpm].length;i++)
+          {
+              trackArr.push("spotify:track:"+qpDataset[bpm][i].track_id);
+              if(i == qpDataset[bpm].length-1)
+              {
+                flg=0;
+                playSongs();
+              }
+              appendTracks(qpDataset[bpm][i]);
+          }
+        });
     }
+
+
 }
 
 //Creation of Table of Tracks
-
 var queueDiv=document.getElementById('queue');
 let tableHeaders = ['User ID', 'Track ID', 'Tempo', 'Danceability', 'Energy', 'Liveness', 'Valence', 'Mode', 'Time Signature'];
 
