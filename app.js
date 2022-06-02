@@ -13,7 +13,6 @@ var dict = {};
 var trackID_tracker = {}
 var trackIdCollection = new Array();
 
-
 const scopes = [
     'ugc-image-upload',
     'user-read-playback-state',
@@ -50,6 +49,7 @@ app.use(bodyParser.json());
 
 const appendData = require('./public/Final Database/test.json');
 const id_checker = require('./public/Final Database/keys.json');
+const { ppid } = require('process');
 
 app.use(express.static(__dirname + '/public'))
    .use(cors())
@@ -196,16 +196,23 @@ app.get('/audiofeatures', (req, res) => {
 app.get('/qpInterface',(req, res)=>{
 
   // res.setHeader('Content-Type', 'application/json');
-
   res.sendFile(__dirname + '/public/html/qpInterface.html');
     
 });
 
+app.get('/getCurrentID', async (req,res) => {
+
+  const playingTrack = await spotifyApi.getMyCurrentPlayingTrack();
+  playingID=playingTrack.body.item.id;
+
+  const af= await spotifyApi.getAudioFeaturesForTrack(playingID);
+  res.send(af.body);
+});
 
 
-app.post('/playback', (req, res) => {
+app.post('/playback',async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
-  const play= spotifyApi.play({
+  const play= await spotifyApi.play({
     "uris": req.body
   }).then(function() {
       console.log('Playback started');
