@@ -87,9 +87,8 @@ function testResults(avgBPM) {
       })
       .then(response => response.json())
       .then(data => {
-          currFeatures=data;
-          console.log(currFeatures.danceability);
 
+          currFeatures=data;
 
           trackArr=[];
           qpDataset[bpm].sort((first,second) => {
@@ -97,47 +96,45 @@ function testResults(avgBPM) {
               return first.danceability - second.danceability;
             }
               else if(document.getElementById('T_TYPE').value=='energy'){
-                return second.energy - first.energy;
+                return first.energy - second.energy;
               }
               else if(document.getElementById('T_TYPE').value=='liveness'){
-                return second.liveness - first.liveness;
+                return first.liveness - second.liveness;
               }
               else if(document.getElementById('T_TYPE').value=='valence'){
-                return second.valence - first.valence;
+                return first.valence - second.valence;
               }
               else if(document.getElementById('T_TYPE').value=='tempo'){
-                return second.tempo - first.tempo;
+                return first.tempo - second.tempo;
               }
               else if(document.getElementById('T_TYPE').value=='mode'){
-                return second.mode - first.mode;
+                return first.mode - second.mode;
               }
               else if(document.getElementById('T_TYPE').value=='time_signature'){
-                return second.time_signature - first.time_signature;
+                return first.time_signature - second.time_signature;
               }
           });
           qpDataset[bpm].sort((first,second) => {
             if(document.getElementById('T_TYPE').value=='danceability'){
-              console.log("first ",first.danceability, Math.abs(first.danceability-currFeatures.danceability))
-              console.log("second ",second.danceability,Math.abs(second.danceability-currFeatures.danceability))
               return (Math.abs(first.danceability-currFeatures.danceability)) - (Math.abs(second.danceability-currFeatures.danceability));
             }
               else if(document.getElementById('T_TYPE').value=='energy'){
-                return second.energy - first.energy;
+                return (Math.abs(first.energy-currFeatures.energy)) - (Math.abs(second.energy-currFeatures.energy));
               }
               else if(document.getElementById('T_TYPE').value=='liveness'){
-                return second.liveness - first.liveness;
+                return (Math.abs(first.liveness-currFeatures.liveness))- (Math.abs(second.liveness-currFeatures.liveness));
               }
               else if(document.getElementById('T_TYPE').value=='valence'){
-                return second.valence - first.valence;
+                return (Math.abs(first.valence-currFeatures.valence))- (Math.abs(second.valence-currFeatures.valence));
               }
               else if(document.getElementById('T_TYPE').value=='tempo'){
-                return second.tempo - first.tempo;
+                return (Math.abs(first.tempo-currFeatures.tempo))- (Math.abs(second.tempo-currFeatures.tempo))
               }
               else if(document.getElementById('T_TYPE').value=='mode'){
-                return second.mode - first.mode;
+                return (Math.abs(first.mode-currFeatures.mode)) - (Math.abs(second.mode-currFeatures.mode))
               }
               else if(document.getElementById('T_TYPE').value=='time_signature'){
-                return second.time_signature - first.time_signature;
+                return (Math.abs(first.time_signature-currFeatures.time_signature))- (Math.abs(second.time_signature-currFeatures.time_signature));
               }
           });
 
