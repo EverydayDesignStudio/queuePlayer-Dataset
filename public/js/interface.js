@@ -1,22 +1,25 @@
-//TapBPM control
+//Queue for queuePlayer
+var qply=[];
+
+//TapBPM control variables
 var count=0;
 var millisecondsFirst=0;
 var millisecondsPrev=0;
-var bpmAvg=0;
-var h1,h3;
 var millisecondsCurr=0;
+var bpmAvg=0;
 var flag=0;
+var flagAlt=0
 
 function resetCount(){
   count=0;
   document.getElementById('T_AVG').value = "";
   document.getElementById('T_TAP').value = "";
   document.getElementById('T_RESET').blur();
-
 }
 
 function tapBPM(e){
   flag=1;
+  flagAlt=1;
   document.getElementById('T_WAIT').blur();
   timeSeconds = new Date();
   millisecondsCurr=timeSeconds.getTime();
@@ -45,27 +48,51 @@ function tapBPM(e){
 
 document.onkeydown=tapBPM;
 
+
+//Show BPM results 
 var lol=setInterval(function(){
   timeSeconds = new Date();
   millisecondsCurr=timeSeconds.getTime();
-  if(flag==1 && millisecondsCurr-millisecondsPrev > 1000 * document.getElementById('T_WAIT').value){
-    if(h1 != undefined && h3 != undefined)
+  if(flag==1 && millisecondsCurr-millisecondsPrev > 1000 * document.getElementById('T_WAIT').value)
+  {
+    if(flagAlt==1)
     {
-      clearResults();
+      console.log("Waiting for track to end")
+      fetch("/getState", {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      }).then(response => {
+        return response.json();
+      }).then(data=>{
+        if(data.state=="eot")
+        {    
+          testResults(Math.round(bpmAvg));
+          trackArr=[];
+          flagAlt=0;
+        }
+        else if(data.state=="np")
+        {
+          testResults(Math.round(bpmAvg));
+          trackArr=[];
+          flagAlt=0;
+        }
+        else if(data.state=="pw")
+        {
+          testResults(Math.round(bpmAvg));
+          trackArr=[];
+          flagAlt=0;
+        }
+      });
     }
-    testResults(Math.round(bpmAvg));
-    trackArr=[];
     flag=0;
   }
 },1000);
 
-
 // Reading the JSON file data
-var trackArr=[];
-var flg=0
-var bpmPrev=0;
 var qpDataset;
-var currFeatures;
 
 fetch("../Final Database/test.json")
 .then(response => {
@@ -74,92 +101,95 @@ fetch("../Final Database/test.json")
   qpDataset=qpData;
 })
 
+//Processing the JSON file data
+var trackArr=[];
+var flg=0
+var bpmPrev=0;
+var currFeatures;
+
 function testResults(avgBPM) {
   let bpm = avgBPM;
-    if(qpDataset[bpm]!=null)
-    {
-      fetch("/getCurrentID", {
-        method: "GET",
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+  if(qpDataset[bpm]!=null)
+  {
+    fetch("/getCurrentID", {
+      method: "GET",
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+
+      currFeatures=data;
+      trackArr=[];
+      qpDataset[bpm].sort((first,second) => {
+        if(document.getElementById('T_TYPE').value=='danceability'){
+          return first.danceability - second.danceability;
         }
-      })
-      .then(response => response.json())
-      .then(data => {
+        else if(document.getElementById('T_TYPE').value=='energy'){
+          return first.energy - second.energy;
+        }
+        else if(document.getElementById('T_TYPE').value=='liveness'){
+          return first.liveness - second.liveness;
+        }
+        else if(document.getElementById('T_TYPE').value=='valence'){
+          return first.valence - second.valence;
+        }
+        else if(document.getElementById('T_TYPE').value=='tempo'){
+          return first.tempo - second.tempo;
+        }
+        else if(document.getElementById('T_TYPE').value=='mode'){
+          return first.mode - second.mode;
+        }
+        else if(document.getElementById('T_TYPE').value=='time_signature'){
+          return first.time_signature - second.time_signature;
+        }
+      });
+      qpDataset[bpm].sort((first,second) => {
+        if(document.getElementById('T_TYPE').value=='danceability'){
+          return (Math.abs(first.danceability-currFeatures.danceability)) - (Math.abs(second.danceability-currFeatures.danceability));
+        }
+        else if(document.getElementById('T_TYPE').value=='energy'){
+          return (Math.abs(first.energy-currFeatures.energy)) - (Math.abs(second.energy-currFeatures.energy));
+        }
+        else if(document.getElementById('T_TYPE').value=='liveness'){
+          return (Math.abs(first.liveness-currFeatures.liveness)) - (Math.abs(second.liveness-currFeatures.liveness));
+        }
+        else if(document.getElementById('T_TYPE').value=='valence'){
+          return (Math.abs(first.valence-currFeatures.valence)) - (Math.abs(second.valence-currFeatures.valence));
+        }
+        else if(document.getElementById('T_TYPE').value=='tempo'){
+          return (Math.abs(first.tempo-currFeatures.tempo)) - (Math.abs(second.tempo-currFeatures.tempo))
+        }
+        else if(document.getElementById('T_TYPE').value=='mode'){
+          return (Math.abs(first.mode-currFeatures.mode)) - (Math.abs(second.mode-currFeatures.mode))
+        }
+        else if(document.getElementById('T_TYPE').value=='time_signature'){
+          return (Math.abs(first.time_signature-currFeatures.time_signature)) - (Math.abs(second.time_signature-currFeatures.time_signature));
+        }
+      });
 
-          currFeatures=data;
+      createQueueTable();
 
-          trackArr=[];
-          qpDataset[bpm].sort((first,second) => {
-            if(document.getElementById('T_TYPE').value=='danceability'){
-              return first.danceability - second.danceability;
-            }
-              else if(document.getElementById('T_TYPE').value=='energy'){
-                return first.energy - second.energy;
-              }
-              else if(document.getElementById('T_TYPE').value=='liveness'){
-                return first.liveness - second.liveness;
-              }
-              else if(document.getElementById('T_TYPE').value=='valence'){
-                return first.valence - second.valence;
-              }
-              else if(document.getElementById('T_TYPE').value=='tempo'){
-                return first.tempo - second.tempo;
-              }
-              else if(document.getElementById('T_TYPE').value=='mode'){
-                return first.mode - second.mode;
-              }
-              else if(document.getElementById('T_TYPE').value=='time_signature'){
-                return first.time_signature - second.time_signature;
-              }
-          });
-          qpDataset[bpm].sort((first,second) => {
-            if(document.getElementById('T_TYPE').value=='danceability'){
-              return (Math.abs(first.danceability-currFeatures.danceability)) - (Math.abs(second.danceability-currFeatures.danceability));
-            }
-              else if(document.getElementById('T_TYPE').value=='energy'){
-                return (Math.abs(first.energy-currFeatures.energy)) - (Math.abs(second.energy-currFeatures.energy));
-              }
-              else if(document.getElementById('T_TYPE').value=='liveness'){
-                return (Math.abs(first.liveness-currFeatures.liveness))- (Math.abs(second.liveness-currFeatures.liveness));
-              }
-              else if(document.getElementById('T_TYPE').value=='valence'){
-                return (Math.abs(first.valence-currFeatures.valence))- (Math.abs(second.valence-currFeatures.valence));
-              }
-              else if(document.getElementById('T_TYPE').value=='tempo'){
-                return (Math.abs(first.tempo-currFeatures.tempo))- (Math.abs(second.tempo-currFeatures.tempo))
-              }
-              else if(document.getElementById('T_TYPE').value=='mode'){
-                return (Math.abs(first.mode-currFeatures.mode)) - (Math.abs(second.mode-currFeatures.mode))
-              }
-              else if(document.getElementById('T_TYPE').value=='time_signature'){
-                return (Math.abs(first.time_signature-currFeatures.time_signature))- (Math.abs(second.time_signature-currFeatures.time_signature));
-              }
-          });
-
-          createQueueTable();
-
-          for(let i=0;i<qpDataset[bpm].length;i++)
-          {
-              trackArr.push("spotify:track:"+qpDataset[bpm][i].track_id);
-              if(i == qpDataset[bpm].length-1)
-              {
-                flg=0;
-                playSongs();
-              }
-              appendTracks(qpDataset[bpm][i]);
-          }
-        });
-    }
-
-
+      for(let i=0;i<qpDataset[bpm].length;i++)
+      {
+        trackArr.push("spotify:track:"+qpDataset[bpm][i].track_id);
+        if(i == qpDataset[bpm].length-1)
+        {
+          flg=0;
+          playSongs();
+        }
+        
+        appendTracks(qpDataset[bpm][i]);
+      }
+    });
+  }
 }
 
 //Creation of Table of Tracks
 var queueDiv=document.getElementById('queue');
 let tableHeaders = ['User ID', 'Track ID', 'Tempo', 'Danceability', 'Energy', 'Liveness', 'Valence', 'Mode', 'Time Signature'];
-
 
 const createQueueTable = () => {
   while(queueDiv.firstChild){
@@ -189,9 +219,7 @@ const createQueueTable = () => {
 
 }
 
-
 function playSongs(){ 
-
   if(trackArr!="" && flg==0)
   {
     fetch("/playback", {
