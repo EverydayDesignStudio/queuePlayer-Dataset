@@ -227,28 +227,19 @@ app.get('/getState', (req, res)=> {
     const state=spotifyApi.getMyCurrentPlaybackState()
     .then(function(data) {
       // Output items
-      console.log("Working");
-      if(data.body.progress_ms+1000>data.body.item.duration_ms)
+      var wot=0;
+      if(wot==0 && data.body.progress_ms+1000>data.body.item.duration_ms)
       {
         console.log('Finished Playing: ' + data.body.item.name);
         clearInterval(si);
-        res.send({state:"eot"});
-      }
-      else if(!data.body.is_playing)
-      {
-        clearInterval(si);
-        res.send({state:"np"});
-      }
-      else
-      {
-        res.send({state:"pw"});
+        wot=1;
+        res.send({state:"eot"}); 
       }
     }, function(err) {
       console.log('Something went wrong!', err);
     });
-  }, 500);
+  }, 1000);
 })
-
 
 app.listen(8888, () =>
    console.log(

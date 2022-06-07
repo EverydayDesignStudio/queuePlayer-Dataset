@@ -1,5 +1,6 @@
 //Queue for queuePlayer
 var qply=[];
+var add=0;
 
 //TapBPM control variables
 var count=0;
@@ -8,7 +9,7 @@ var millisecondsPrev=0;
 var millisecondsCurr=0;
 var bpmAvg=0;
 var flag=0;
-var flagAlt=0
+
 
 function resetCount(){
   count=0;
@@ -19,7 +20,6 @@ function resetCount(){
 
 function tapBPM(e){
   flag=1;
-  flagAlt=1;
   document.getElementById('T_WAIT').blur();
   timeSeconds = new Date();
   millisecondsCurr=timeSeconds.getTime();
@@ -46,54 +46,62 @@ function tapBPM(e){
   return true;
 }
 
+
+var endtrack=false;
+async function triggerEndTrack(){
+  await fetch("/getState", {
+    method: "GET",
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    }
+  }).then(async response => {
+    return await response.json();
+  }).then(data=>{
+    if(data.state=="eot")
+    {
+      endtrack=true;
+    }
+  });
+}
+
+
 document.onkeydown=tapBPM;
 
-
-//Show BPM results 
+//Use BPM results 
+var bpmAdded=0;
 var lol=setInterval(function(){
   timeSeconds = new Date();
   millisecondsCurr=timeSeconds.getTime();
+  if(endtrack)
+  {    
+    console.log("EndTrack")
+    flg=0;
+    trackArr.splice(0,1);
+    playSongs(trackArr);
+    // add=0;
+    bpmAdded=0;
+    endtrack=false;
+    // trackArr=[];
+  }
   if(flag==1 && millisecondsCurr-millisecondsPrev > 1000 * document.getElementById('T_WAIT').value)
   {
-    if(flagAlt==1)
-    {
-      console.log("Waiting for track to end")
-      fetch("/getState", {
-        method: "GET",
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
-      }).then(response => {
-        return response.json();
-      }).then(data=>{
-        if(data.state=="eot")
-        {    
-          testResults(Math.round(bpmAvg));
-          trackArr=[];
-          flagAlt=0;
-        }
-        else if(data.state=="np")
-        {
-          testResults(Math.round(bpmAvg));
-          trackArr=[];
-          flagAlt=0;
-        }
-        else if(data.state=="pw")
-        {
-          testResults(Math.round(bpmAvg));
-          trackArr=[];
-          flagAlt=0;
-        }
-      });
-    }
+      console.log("New BPM Added");
+      if(bpmAdded==0)
+      {
+        console.log("Tracking Song End");
+        triggerEndTrack();
+        bpmAdded=1;
+      }
+      testResults(Math.round(bpmAvg));
+        // trackArr=[];
+      add++;
     flag=0;
   }
 },1000);
 
 // Reading the JSON file data
 var qpDataset;
-
 fetch("../Final Database/test.json")
 .then(response => {
   return response.json();
@@ -108,6 +116,8 @@ var bpmPrev=0;
 var currFeatures;
 
 function testResults(avgBPM) {
+
+  console.log("QUEUE UPDATE");
   let bpm = avgBPM;
   if(qpDataset[bpm]!=null)
   {
@@ -122,7 +132,7 @@ function testResults(avgBPM) {
     .then(data => {
 
       currFeatures=data;
-      trackArr=[];
+      // trackArr=[];
       qpDataset[bpm].sort((first,second) => {
         if(document.getElementById('T_TYPE').value=='danceability'){
           return first.danceability - second.danceability;
@@ -172,18 +182,65 @@ function testResults(avgBPM) {
 
       createQueueTable();
 
+      var chk=0;
       for(let i=0;i<qpDataset[bpm].length;i++)
       {
-        trackArr.push("spotify:track:"+qpDataset[bpm][i].track_id);
-        if(i == qpDataset[bpm].length-1)
+        if(add>1)
         {
-          flg=0;
-          playSongs();
+          if(chk==0)
+          {
+            console.log("New Queue in the Making");
+            trackArr.splice(add-1,trackArr.length-1);
+            qply.splice(add-1,qply.length-1);
+            chk=1;
+          }
+          qply.push(qpDataset[bpm][i]);
+          trackArr.push("spotify:track:"+qpDataset[bpm][i].track_id);
         }
-        
-        appendTracks(qpDataset[bpm][i]);
+        else
+        {
+          console.log("When no queue is made");
+          qply.push(qpDataset[bpm][i]);
+          trackArr.push("spotify:track:"+qpDataset[bpm][i].track_id);
+          if(i == qpDataset[bpm].length-1)
+          {
+            flg=0;
+            playSongs(trackArr);
+          }
+        }
+        // appendTracks(qpDataset[bpm][i]);
+      }
+
+      for(let i=0; i<qply.length; i++)
+      {
+        appendTracks(qply[i]);
       }
     });
+  }
+}
+
+function playSongs(trackArr){ 
+
+  if(trackArr!="" && flg==0)
+  {
+    fetch("/playback", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(trackArr),
+    })
+    .then(response => {
+      if(!response.ok)
+      {
+        console.error(response)
+      }
+      else
+      {
+        return response.json();
+      }
+    })
+    flg=1;
   }
 }
 
@@ -219,29 +276,6 @@ const createQueueTable = () => {
 
 }
 
-function playSongs(){ 
-  if(trackArr!="" && flg==0)
-  {
-    fetch("/playback", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(trackArr),
-    })
-    .then(response => {
-      if(!response.ok)
-      {
-        console.error(response)
-      }
-      else
-      {
-        return response.json();
-      }
-    })
-    flg=1;
-  }
-}
 const appendTracks=(track) =>{
 
   const queueTableBody = document.getElementById('queueTableBody');
