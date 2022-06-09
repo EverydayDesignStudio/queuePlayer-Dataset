@@ -65,8 +65,29 @@ async function triggerEndTrack(){
   });
 }
 
-
-document.onkeydown=tapBPM;
+window.addEventListener('keydown', function (e) {
+  console.log(e.key)
+  if(e.key==1)
+  {
+    tapBPM();
+  }
+  else if(e.key==2)
+  {
+    tapBPM();
+  }
+  else if(e.key==3)
+  {
+    tapBPM();
+  }
+  else if(e.key==4)
+  {
+    tapBPM();
+  }
+  else
+  {
+    alert("Invalid key");
+  }
+}, false);
 
 //Use BPM results 
 var bpmAdded=0;

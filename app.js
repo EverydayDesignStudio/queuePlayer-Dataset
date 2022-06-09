@@ -228,7 +228,7 @@ app.get('/getState', (req, res)=> {
     .then(function(data) {
       // Output items
       var wot=0;
-      if(wot==0 && data.body.progress_ms+1000>data.body.item.duration_ms)
+      if(wot==0 && data.body.progress_ms+2000>data.body.item.duration_ms)
       {
         console.log('Finished Playing: ' + data.body.item.name);
         clearInterval(si);
