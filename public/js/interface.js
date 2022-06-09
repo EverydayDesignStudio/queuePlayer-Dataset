@@ -267,7 +267,9 @@ function playSongs(trackArr){
 
 //Creation of Table of Tracks
 var queueDiv=document.getElementById('queue');
-let tableHeaders = ['User ID', 'Track Name', 'Track ID', 'Tempo', 'Danceability', 'Energy', 'Liveness', 'Valence', 'Mode', 'Time Signature'];
+// let tableHeaders = ['User ID', 'Track Name', 'Track ID', 'Tempo', 'Danceability', 'Energy', 'Liveness', 'Valence', 'Mode', 'Time Signature'];
+let tableHeaders = ['User ID', 'Track Name', 'Tempo', 'Danceability', 'Energy', 'Liveness', 'Valence', 'Mode', 'Time Signature'];
+
 
 const createQueueTable = () => {
   while(queueDiv.firstChild){
@@ -309,8 +311,8 @@ const appendTracks=(track) =>{
   let trackName=document.createElement('td');
   trackName.innerText=track.track_name;
 
-  let trackID=document.createElement('td');
-  trackID.innerText=track.track_id;
+  // let trackID=document.createElement('td');
+  // trackID.innerText=track.track_id;
 
   let tempo=document.createElement('td');
   tempo.innerText=track.tempo;
@@ -333,7 +335,9 @@ const appendTracks=(track) =>{
   let timeSignature=document.createElement('td');
   timeSignature.innerText=track.time_signature;
 
-  queueTableBodyRow.append(userID,trackID,tempo,danceability,energy,liveness,valence,mode,timeSignature);
+  queueTableBodyRow.append(userID,trackName,tempo,danceability,energy,liveness,valence,mode,timeSignature);
+  // queueTableBodyRow.append(userID,trackName,trackID,tempo,danceability,energy,liveness,valence,mode,timeSignature);
+
 
   queueTableBody.append(queueTableBodyRow);
 
