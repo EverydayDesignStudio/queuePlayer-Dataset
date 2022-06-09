@@ -47,8 +47,9 @@ app.use(bodyParser.json());
 // const jsonData= require('./public/Spotify Data/Samann/endsong_7.json'); 
 // segregateDataBy100(jsonData)
 
-const appendData = require('./public/Final Database/test.json');
-const id_checker = require('./public/Final Database/keys.json');
+// const appendData = require('./public/Final Database/multiuser.json');
+// const id_checker = require('./public/Final Database/keys_multiuser.json');
+
 const { ppid } = require('process');
 
 app.use(express.static(__dirname + '/public'))
@@ -100,6 +101,7 @@ spotifyApi
       if(access_token !=null)
       {
         res.redirect('/qpInterface');
+        // res.redirect('/audiofeatures');
       }
   });
 
@@ -133,7 +135,6 @@ function segregateDataBy100(jsonData) {
   }
 
   return trackIdCollection;
-
 }
 
 app.get('/audiofeatures', (req, res) => {
@@ -142,7 +143,11 @@ app.get('/audiofeatures', (req, res) => {
     
     let i=0; 
     var intervalID=setInterval(async ()=> {
-      const me= await spotifyApi.getAudioFeaturesForTracks(trackIdCollection[i]);
+      
+      var me, trk1, trk2;
+      me= await spotifyApi.getAudioFeaturesForTracks(trackIdCollection[i]);
+      trk1=await spotifyApi.getTracks(trackIdCollection[i].slice(0, trackIdCollection[i].length/2));
+      trk2=await spotifyApi.getTracks(trackIdCollection[i].slice(trackIdCollection[i].length/2, trackIdCollection[i].length));
 
       for(let j=0; j<me.body.audio_features.length;j++)
       {
@@ -157,36 +162,54 @@ app.get('/audiofeatures', (req, res) => {
             // if(dict[Math.floor(me.body.audio_features[j].tempo)]==undefined)
             if(appendData[Math.floor(me.body.audio_features[j].tempo)]==undefined)
             {
-              // dict[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 1, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
-              appendData[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 1, track_id: me.body.audio_features[j].uri.split(":")[2],  tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+              if(j>=trk1.body.tracks.length)
+              {
+                // dict[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 1, track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+                appendData[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 4, track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2],  tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+              }
+              else
+              {
+                // dict[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 1, track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+                appendData[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 4, track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2],  tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+              }
+
             }
             else
             {
-              // dict[Math.floor(me.body.audio_features[j].tempo)].push({user_id: 1, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
-              appendData[Math.floor(me.body.audio_features[j].tempo)].push({user_id: 1, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+              if(j>=trk1.body.tracks.length)
+              {
+                //  dict[Math.floor(me.body.audio_features[j].tempo)].push({user_id: 1, track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+                appendData[Math.floor(me.body.audio_features[j].tempo)].push({user_id: 4, track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+              }
+              else
+              {
+                // dict[Math.floor(me.body.audio_features[j].tempo)].push({user_id: 1, track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+                appendData[Math.floor(me.body.audio_features[j].tempo)].push({user_id: 4, track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+              }
             }
           }
         }
       }
-      console.log("Iteration Done : " + i);
       i++;
+      console.log("Iteration Done: "+i);
       if(i==trackIdCollection.length)
       {
           clearInterval(intervalID);
 
           // var keystring=JSON.stringify(trackID_tracker);
           var keystring=JSON.stringify(id_checker);
-          fs.writeFileSync('./public/Final Database/keys.json', keystring,function(err, result) {
+          fs.writeFileSync('./public/Final Database/keys_multiuser.json', keystring,function(err, result) {
             if(err) console.log('error', err);
           });
 
           // var dictstring=JSON.stringify(dict);
           var dictstring=JSON.stringify(appendData);
-          fs.writeFile('./public/Final Database/test.json', dictstring, function(err, result) {
+          fs.writeFile('./public/Final Database/multiuser.json', dictstring, function(err, result) {
             if(err) console.log('error', err);
           });
   
-          return res.redirect('/qpInterface');
+          // return res.redirect('/qpInterface');
+          return res.send("Dataset Made");
       }
     }, 1000);
 

@@ -123,7 +123,7 @@ var lol=setInterval(function(){
 
 // Reading the JSON file data
 var qpDataset;
-fetch("../Final Database/test.json")
+fetch("../Final Database/multiuser.json")
 .then(response => {
   return response.json();
 }).then(qpData=>{
@@ -267,7 +267,7 @@ function playSongs(trackArr){
 
 //Creation of Table of Tracks
 var queueDiv=document.getElementById('queue');
-let tableHeaders = ['User ID', 'Track ID', 'Tempo', 'Danceability', 'Energy', 'Liveness', 'Valence', 'Mode', 'Time Signature'];
+let tableHeaders = ['User ID', 'Track Name', 'Track ID', 'Tempo', 'Danceability', 'Energy', 'Liveness', 'Valence', 'Mode', 'Time Signature'];
 
 const createQueueTable = () => {
   while(queueDiv.firstChild){
@@ -305,6 +305,9 @@ const appendTracks=(track) =>{
 
   let userID=document.createElement('td');
   userID.innerText=track.user_id;
+
+  let trackName=document.createElement('td');
+  trackName.innerText=track.track_name;
 
   let trackID=document.createElement('td');
   trackID.innerText=track.track_id;
