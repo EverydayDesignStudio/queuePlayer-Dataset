@@ -235,8 +235,9 @@ app.get('/getCurrentID', async (req,res) => {
 
 app.post('/playback',async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
+  console.log(req.body);
   const play= await spotifyApi.play({
-    "uris": req.body
+    "uris": req.body.queue
   }).then(function() {
       console.log('Playback started');
     }, function(err) {

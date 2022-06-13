@@ -3,6 +3,8 @@ body
     background-color: #0e1111;
     color: #fff;
     font-family: 'Lato', sans-serif;
+    margin:0;
+    overflow: hidden;
 }
 table{
     border: 0.5px solid;
@@ -26,7 +28,7 @@ th{
 
 .buttons
 {
-    width:5%;
+    width:25%;
     border-radius: 30px;
     padding: 5px;
     background-image: linear-gradient(to right,#934DD2, #733FD7);
@@ -73,12 +75,59 @@ th{
     float: left;
 }
 
-#mainPanel{
-    width: 80%;
-    height: 100vh;
-    float:left;
-}
-
 #sidePanelHeader{
     margin: 10px 20px;
+}
+
+#mainPanel{
+    width: 80%;
+    height: 100%;
+    background-color: #0e1111;
+    float: left;
+}
+
+#mainPanelHeader{
+    width: 100%;
+    height: 30vh;
+}
+
+#mainPanel-left{
+    width: 75%;
+    height:100%;
+    float:left;
+    background-color: #0e1111;
+}
+
+#mainPanel-right{
+    width: 25%;
+    height:100%;
+    float:left;
+    background-color: #0e1111;
+}
+
+#bpm-showcase{
+    width: 100%;
+    text-align:left;
+}
+#bpm-indicator{
+    font-size: 96px;
+    margin:0px;
+}
+#bpm-label{
+    font-size: 24px;
+    font-weight: bold;
+    margin:-10px 10px 0px 10px;
+}
+#wait-indicator{
+    margin:10px 10px;
+}
+#sort-indicator{
+    margin:10px 10px;
+}
+
+#queue{
+    background-color: #693333;
+    width: 100%;
+    height: 70vh;
+    overflow: auto;
 }

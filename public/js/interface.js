@@ -1,5 +1,6 @@
 //Dev Variables
 var user;
+var playerID;
 
 //Queue for queuePlayer
 var qply=[];
@@ -13,18 +14,47 @@ var millisecondsCurr=0;
 var bpmAvg=0;
 var flag=0;
 
+window.onSpotifyWebPlaybackSDKReady = () => {
+  const token = 'BQDH7AQjuww1q0-zllMAy6Wpt3GS3yth6liQNq418XCgcNEzHbBpkaN8OSOE-Z_NxFKqJo4moGAygJZGx4R6EuqNCb_tJ_x5a6tUqutfzU5__I97CLHNTFx_I2u6pwEPb27YSuhipq9Tb3ypNNxdxMIhCaLxKTC3fTmHSM5zqQyDZaudIAFiZWaAVug1QwZozUzkBcI7HfSPJHeEvP4Y-nz707M-';
+  const player = new Spotify.Player({
+    name: 'Web Playback SDK Quick Start Player',
+    getOAuthToken: cb => { cb(token); },
+    volume: 0.5
+  });
+  // Ready
+  player.addListener('ready', ({ device_id }) => {
+    console.log('Ready with Device ID', device_id);
+    playerID=device_id;
+  });
+
+  // Not Ready
+  player.addListener('not_ready', ({ device_id }) => {
+    console.log('Device ID has gone offline', device_id);
+  });
+
+  player.addListener('player_state_changed', ({
+    position,
+    duration,
+    track_window: { current_track }
+  }) => {
+    console.log('Currently Playing', current_track);
+    console.log('Position in Song', position);
+    console.log('Duration of Song', duration);
+  });
+
+  player.connect();
+}
+
 
 function resetCount(){
   count=0;
-  // document.getElementById('T_AVG').value = "";
-  // document.getElementById('T_TAP').value = "";
-  // document.getElementById('T_RESET').blur();
 }
 
 function tapBPM(userInterac){
   flag=1;
   document.getElementById('user-indicator').innerHTML = "User: "+userInterac;
-  // document.getElementById('T_WAIT').blur();
+  setUserColor(userInterac);
+  document.getElementById('T_WAIT').blur();
   timeSeconds = new Date();
   millisecondsCurr=timeSeconds.getTime();
   if(millisecondsCurr-millisecondsPrev > 1000 * document.getElementById('T_WAIT').value)
@@ -47,6 +77,26 @@ function tapBPM(userInterac){
   return true;
 }
 
+function setUserColor(userInterac){
+  var user_tag=document.getElementById('user-indicator');
+  var bpm_tag=document.getElementById('bpm-indicator');
+  if(userInterac=="1"){
+    user_tag.style.color="red";
+    bpm_tag.style.color="red";
+  } 
+  else if(userInterac=="2"){
+    user_tag.style.color="blue";
+    bpm_tag.style.color="blue";
+  }
+  else if(userInterac=="3"){
+    user_tag.style.color="green";
+    bpm_tag.style.color="green";
+  }
+  else if(userInterac=="4"){
+    user_tag.style.color="yellow";
+    bpm_tag.style.color="yellow";
+  }
+}
 
 var endtrack=false;
 async function triggerEndTrack(){
@@ -144,6 +194,7 @@ var currFeatures;
 
 function testResults(avgBPM, userInterac) {
 
+  document.getElementById('bpm-indicator').style.color="#ffffff";
   console.log("QUEUE UPDATE");
   let bpm = avgBPM;
   if(qpDataset[bpm]!=null)
@@ -265,7 +316,11 @@ function playSongs(trackArr){
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(trackArr),
+      body: 
+      JSON.stringify({
+        "queue":trackArr,
+        "player_id":playerID
+      })
     })
     .then(response => {
       if(!response.ok)
@@ -361,5 +416,6 @@ const appendTracks=(track) =>{
 
 function rearrangeQueue(){
   testResults(Math.round(bpmAvg));
+  document.getElementById('T_SELECT').blur();
 }
 
