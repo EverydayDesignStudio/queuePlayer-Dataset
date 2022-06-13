@@ -5,77 +5,87 @@
     <link rel="stylesheet" href="../css/interface.css">
   </head>
   <body>
-    <h3>Use any key - Start tapping to measure BPM</h3>
-    <table>
-      <tr>
-        <form id='TAP_DISPLAY'>
-        <td>
-          <table>
-            <tr>
-              <td>
-                <table>
-                  <tr>
-                    <td><tt class="labels">Average BPM</tt>
-                      <input readonly id='T_AVG' class="valuesBPM" size=12>
-                    </td>
-    
-                    <td><tt class="labels">Nearest Whole</tt>
-                      <input readonly id='T_WHOLE' class="valuesBPM" size=12>
-                    </td>
-    
-                    <td><tt class="labels">Timing Taps</tt>
-                      <input readonly id='T_TAP' class="valuesBPM" size=12>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-      <tr>
-        <td align=center>
-          Pause
-          <select id='T_WAIT'>
-            <option value='1'>1</option>
-            <option value='2' SELECTED>2</option>
-            <option value='3'>3</option>
-            <option value='4'>4</option>
-            <option value='5'>5</option>
-          </select>
-          second(s) or
-          <input type="button" id='T_RESET' class="buttons" value="RESET" onclick="resetCount()">
-          to start again
-        </td>
-        </form>
-      </tr>
-      <tr>
-        <td>
-          Sort according to : 
-          <select id='T_TYPE'>
-            <option value='tempo'>tempo</option>
-            <option value='danceability' SELECTED>danceability</option>
-            <option value='energy'>energy</option>
-            <option value='liveness'>liveness</option>
-            <option value='valence'>valence</option>
-            <option value='mode'>mode</option>
-            <option value='time_signature'>time_signature</option>
-          </select>
-          <input type="button" id='T_SELECT' class="buttons" value="SELECT" onclick="rearrangeQueue()">
-        </td>
-      </tr>
+    <div id="sidePanel">
+      <div id="sidePanelHeader">
+        <h1>QueuePlayer Interface</h1>
+        <h3 id="user-indicator">User: N/A</h3>
+      </div>
+    </div>
+    <div id="mainPanel">
+      <h3>Use any key - Start tapping to measure BPM</h3>
+      <h1 id="bpm-indicator">-</h1>
+      <!-- <table>
+        <tr>
+          <form id='TAP_DISPLAY'>
+          <td>
+            <table>
+              <tr>
+                <td>
+                  <table>
+                    <tr>
+                      <td><tt class="labels">Average BPM</tt>
+                        <input readonly id='T_AVG' class="valuesBPM" size=12>
+                      </td>
       
-      <!-- <tr>
-        <td>Touchscreen click here &gt; <input id='T_FOCUS' size=2 maxLength=1> &lt; to activate keyboard</td>
-      </tr> -->
-    </table>
+                      <td><tt class="labels">Nearest Whole</tt>
+                        <input readonly id='T_WHOLE' class="valuesBPM" size=12>
+                      </td>
+      
+                      <td><tt class="labels">Timing Taps</tt>
+                        <input readonly id='T_TAP' class="valuesBPM" size=12>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr> -->
+          <!-- <td align=center> -->
+          <p>  
+            Pause
+            <select id='T_WAIT'>
+              <option value='1'>1</option>
+              <option value='2' SELECTED>2</option>
+              <option value='3'>3</option>
+              <option value='4'>4</option>
+              <option value='5'>5</option>
+            </select>
+            second(s) or
+            <input type="button" id='T_RESET' class="buttons" value="RESET" onclick="resetCount()">
+            to start again
+          </p>
+          <!-- </td>
+          </form>
+        </tr>
+        <tr> -->
+          <!-- <td> -->
+          <p>
+            Sort according to : 
+            <select id='T_TYPE'>
+              <option value='tempo'>tempo</option>
+              <option value='danceability' SELECTED>danceability</option>
+              <option value='energy'>energy</option>
+              <option value='liveness'>liveness</option>
+              <option value='valence'>valence</option>
+              <option value='mode'>mode</option>
+              <option value='time_signature'>time_signature</option>
+            </select>
+            <input type="button" id='T_SELECT' class="buttons" value="SELECT" onclick="rearrangeQueue()">
+          </p>
+          <!-- </td>
+        </tr>
+      </table> -->
       <!-- <h1> Welcome to Queue Player Interface </h1>
       <form name="qp" method="get">
         Enter the BPM: <br>
         <input type="number" name="bpm" value=""> <p>
         <input type="button" name="button"  value="Click" onClick="testResults(this.form);">  
       </form> -->
-    <div id='queue'></div>
+      <div id='queue'></div>
+    </div>
+
   </body>
   <script src="../js/interface.js"></script>
 

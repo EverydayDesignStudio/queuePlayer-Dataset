@@ -1,3 +1,6 @@
+//Dev Variables
+var user;
+
 //Queue for queuePlayer
 var qply=[];
 var add=0;
@@ -13,14 +16,15 @@ var flag=0;
 
 function resetCount(){
   count=0;
-  document.getElementById('T_AVG').value = "";
-  document.getElementById('T_TAP').value = "";
-  document.getElementById('T_RESET').blur();
+  // document.getElementById('T_AVG').value = "";
+  // document.getElementById('T_TAP').value = "";
+  // document.getElementById('T_RESET').blur();
 }
 
-function tapBPM(e){
+function tapBPM(userInterac){
   flag=1;
-  document.getElementById('T_WAIT').blur();
+  document.getElementById('user-indicator').innerHTML = "User: "+userInterac;
+  // document.getElementById('T_WAIT').blur();
   timeSeconds = new Date();
   millisecondsCurr=timeSeconds.getTime();
   if(millisecondsCurr-millisecondsPrev > 1000 * document.getElementById('T_WAIT').value)
@@ -29,18 +33,15 @@ function tapBPM(e){
   }
   if(count==0)
   {
-    document.getElementById('T_AVG').value = "First Beat";
-    document.getElementById('T_TAP').value = "First Beat";
+    document.getElementById('bpm-indicator').innerHTML = "-";
     millisecondsFirst=millisecondsCurr;
     count = 1;
   }
   else
   {
     bpmAvg=60000*count/(millisecondsCurr-millisecondsFirst);
-    document.getElementById('T_AVG').value = Math.round(bpmAvg * 100) / 100;
-    document.getElementById('T_WHOLE').value = Math.round(bpmAvg);
+    document.getElementById('bpm-indicator').innerHTML = Math.round(bpmAvg);
     count++;
-    document.getElementById('T_TAP').value = count;
   }
   millisecondsPrev = millisecondsCurr;
   return true;
@@ -69,22 +70,27 @@ window.addEventListener('keydown', function (e) {
   console.log(e.key)
   if(e.key==1)
   {
-    tapBPM();
+    user=1;
+    tapBPM(user);
   }
   else if(e.key==2)
   {
-    tapBPM();
+    user=2;
+    tapBPM(user);
   }
   else if(e.key==3)
   {
-    tapBPM();
+    user=3;
+    tapBPM(user);
   }
   else if(e.key==4)
   {
-    tapBPM();
+    user=4;
+    tapBPM(user);
   }
   else
   {
+    user=0;
     alert("Invalid key");
   }
 }, false);
@@ -114,7 +120,7 @@ var lol=setInterval(function(){
         triggerEndTrack();
         bpmAdded=1;
       }
-      testResults(Math.round(bpmAvg));
+      testResults(Math.round(bpmAvg),user);
         // trackArr=[];
       add++;
     flag=0;
@@ -136,7 +142,7 @@ var flg=0
 var bpmPrev=0;
 var currFeatures;
 
-function testResults(avgBPM) {
+function testResults(avgBPM, userInterac) {
 
   console.log("QUEUE UPDATE");
   let bpm = avgBPM;
@@ -200,6 +206,16 @@ function testResults(avgBPM) {
           return (Math.abs(first.time_signature-currFeatures.time_signature)) - (Math.abs(second.time_signature-currFeatures.time_signature));
         }
       });
+
+
+      //Choosing the first song for the user interacted
+      let l=0;
+      while(qpDataset[bpm][l].user_id != userInterac)
+      {
+        l++;
+      }
+      var temp=qpDataset[bpm].splice(0,l);
+      qpDataset[bpm].concat(temp);
 
       createQueueTable();
 
