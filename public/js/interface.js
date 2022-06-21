@@ -14,36 +14,36 @@ var millisecondsCurr=0;
 var bpmAvg=0;
 var flag=0;
 
-window.onSpotifyWebPlaybackSDKReady = () => {
-  const token = 'BQDH7AQjuww1q0-zllMAy6Wpt3GS3yth6liQNq418XCgcNEzHbBpkaN8OSOE-Z_NxFKqJo4moGAygJZGx4R6EuqNCb_tJ_x5a6tUqutfzU5__I97CLHNTFx_I2u6pwEPb27YSuhipq9Tb3ypNNxdxMIhCaLxKTC3fTmHSM5zqQyDZaudIAFiZWaAVug1QwZozUzkBcI7HfSPJHeEvP4Y-nz707M-';
-  const player = new Spotify.Player({
-    name: 'Web Playback SDK Quick Start Player',
-    getOAuthToken: cb => { cb(token); },
-    volume: 0.5
-  });
-  // Ready
-  player.addListener('ready', ({ device_id }) => {
-    console.log('Ready with Device ID', device_id);
-    playerID=device_id;
-  });
+// window.onSpotifyWebPlaybackSDKReady = () => {
+//   const token = 'BQDH7AQjuww1q0-zllMAy6Wpt3GS3yth6liQNq418XCgcNEzHbBpkaN8OSOE-Z_NxFKqJo4moGAygJZGx4R6EuqNCb_tJ_x5a6tUqutfzU5__I97CLHNTFx_I2u6pwEPb27YSuhipq9Tb3ypNNxdxMIhCaLxKTC3fTmHSM5zqQyDZaudIAFiZWaAVug1QwZozUzkBcI7HfSPJHeEvP4Y-nz707M-';
+//   const player = new Spotify.Player({
+//     name: 'Web Playback SDK Quick Start Player',
+//     getOAuthToken: cb => { cb(token); },
+//     volume: 0.5
+//   });
+//   // Ready
+//   player.addListener('ready', ({ device_id }) => {
+//     console.log('Ready with Device ID', device_id);
+//     playerID=device_id;
+//   });
 
-  // Not Ready
-  player.addListener('not_ready', ({ device_id }) => {
-    console.log('Device ID has gone offline', device_id);
-  });
+//   // Not Ready
+//   player.addListener('not_ready', ({ device_id }) => {
+//     console.log('Device ID has gone offline', device_id);
+//   });
 
-  player.addListener('player_state_changed', ({
-    position,
-    duration,
-    track_window: { current_track }
-  }) => {
-    console.log('Currently Playing', current_track);
-    console.log('Position in Song', position);
-    console.log('Duration of Song', duration);
-  });
+//   player.addListener('player_state_changed', ({
+//     position,
+//     duration,
+//     track_window: { current_track }
+//   }) => {
+//     console.log('Currently Playing', current_track);
+//     console.log('Position in Song', position);
+//     console.log('Duration of Song', duration);
+//   });
 
-  player.connect();
-}
+//   player.connect();
+// }
 
 
 function resetCount(){
@@ -319,7 +319,6 @@ function playSongs(trackArr){
       body: 
       JSON.stringify({
         "queue":trackArr,
-        "player_id":playerID
       })
     })
     .then(response => {

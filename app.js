@@ -44,8 +44,8 @@ var spotifyApi = new SpotifyWebApi({
 const app = express();
 app.use(bodyParser.json());
 
-// const jsonData= require('./public/Spotify Data/Samann/endsong_7.json'); 
-// segregateDataBy100(jsonData)
+const jsonData= require('./public/Spotify Data/Samann/endsong_0.json'); 
+segregateDataBy100(jsonData)
 
 // const appendData = require('./public/Final Database/multiuser.json');
 // const id_checker = require('./public/Final Database/keys_multiuser.json');
@@ -100,8 +100,8 @@ spotifyApi
 
       if(access_token !=null)
       {
-        res.redirect('/qpInterface');
-        // res.redirect('/audiofeatures');
+        // res.redirect('/qpInterface');
+        res.redirect('/audiofeatures');
       }
   });
 
@@ -153,24 +153,24 @@ app.get('/audiofeatures', (req, res) => {
       {
         if(me.body.audio_features[j].speechiness > 0 && me.body.audio_features[j].speechiness < 0.66)
         {
-          if(id_checker[me.body.audio_features[j].uri.split(":")[2]]==undefined)
-          // if(trackID_tracker[me.body.audio_features[j].uri.split(":")[2]] == undefined) 
+          // if(id_checker[me.body.audio_features[j].uri.split(":")[2]]==undefined)
+          if(trackID_tracker[me.body.audio_features[j].uri.split(":")[2]] == undefined) 
           {
-            // trackID_tracker[me.body.audio_features[j].uri.split(":")[2]] = 1;
-            id_checker[me.body.audio_features[j].uri.split(":")[2]] = 1;
+            trackID_tracker[me.body.audio_features[j].uri.split(":")[2]] = 1;
+            // id_checker[me.body.audio_features[j].uri.split(":")[2]] = 1;
 
-            // if(dict[Math.floor(me.body.audio_features[j].tempo)]==undefined)
-            if(appendData[Math.floor(me.body.audio_features[j].tempo)]==undefined)
+            if(dict[Math.floor(me.body.audio_features[j].tempo)]==undefined)
+            // if(appendData[Math.floor(me.body.audio_features[j].tempo)]==undefined)
             {
               if(j>=trk1.body.tracks.length)
               {
-                // dict[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 1, track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
-                appendData[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 4, track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2],  tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+                dict[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 1, track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+                // appendData[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 4, track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2],  tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
               }
               else
               {
-                // dict[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 1, track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
-                appendData[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 4, track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2],  tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+                dict[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 1, track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+                // appendData[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 4, track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2],  tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
               }
 
             }
@@ -178,13 +178,13 @@ app.get('/audiofeatures', (req, res) => {
             {
               if(j>=trk1.body.tracks.length)
               {
-                //  dict[Math.floor(me.body.audio_features[j].tempo)].push({user_id: 1, track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
-                appendData[Math.floor(me.body.audio_features[j].tempo)].push({user_id: 4, track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+                 dict[Math.floor(me.body.audio_features[j].tempo)].push({user_id: 1, track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+                // appendData[Math.floor(me.body.audio_features[j].tempo)].push({user_id: 4, track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
               }
               else
               {
-                // dict[Math.floor(me.body.audio_features[j].tempo)].push({user_id: 1, track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
-                appendData[Math.floor(me.body.audio_features[j].tempo)].push({user_id: 4, track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+                dict[Math.floor(me.body.audio_features[j].tempo)].push({user_id: 1, track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+                // appendData[Math.floor(me.body.audio_features[j].tempo)].push({user_id: 4, track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
               }
             }
           }
@@ -196,14 +196,14 @@ app.get('/audiofeatures', (req, res) => {
       {
           clearInterval(intervalID);
 
-          // var keystring=JSON.stringify(trackID_tracker);
-          var keystring=JSON.stringify(id_checker);
+          var keystring=JSON.stringify(trackID_tracker);
+          // var keystring=JSON.stringify(id_checker);
           fs.writeFileSync('./public/Final Database/keys_multiuser.json', keystring,function(err, result) {
             if(err) console.log('error', err);
           });
 
-          // var dictstring=JSON.stringify(dict);
-          var dictstring=JSON.stringify(appendData);
+          var dictstring=JSON.stringify(dict);
+          // var dictstring=JSON.stringify(appendData);
           fs.writeFile('./public/Final Database/multiuser.json', dictstring, function(err, result) {
             if(err) console.log('error', err);
           });
@@ -235,7 +235,6 @@ app.get('/getCurrentID', async (req,res) => {
 
 app.post('/playback',async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
-  console.log(req.body);
   const play= await spotifyApi.play({
     "uris": req.body.queue
   }).then(function() {
