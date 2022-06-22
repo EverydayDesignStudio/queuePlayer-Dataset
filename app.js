@@ -7,12 +7,6 @@ var cookieParser = require('cookie-parser');
 var fs= require('fs');
 var bodyParser = require("body-parser");
 
-var access_token;
-var af;
-var dict = {};
-var trackID_tracker = {}
-var trackIdCollection = new Array();
-
 const scopes = [
     'ugc-image-upload',
     'user-read-playback-state',
@@ -41,14 +35,10 @@ var spotifyApi = new SpotifyWebApi({
     redirectUri: 'http://localhost:8888/callback'
 });
 
+var access_token;
+
 const app = express();
 app.use(bodyParser.json());
-
-const jsonData= require('./public/Spotify Data/Samann/endsong_0.json'); 
-segregateDataBy100(jsonData)
-
-// const appendData = require('./public/Final Database/multiuser.json');
-// const id_checker = require('./public/Final Database/keys_multiuser.json');
 
 const { ppid } = require('process');
 
@@ -100,125 +90,12 @@ spotifyApi
 
       if(access_token !=null)
       {
-        // res.redirect('/qpInterface');
-        res.redirect('/audiofeatures');
+        res.redirect('/qpInterface');
       }
   });
 
-function segregateDataBy100(jsonData) {
-  let count=0;
-  let j=0;
-  trackIdCollection[0]=new Array();
-  console.log(jsonData.length);
-  for (let i=0; i<jsonData.length;i++)
-  {
-    while(i<jsonData.length && jsonData[i].spotify_track_uri==null)
-    {
-      i++;
-    }
-    if(i<jsonData.length)
-    {
-      if(count==99)
-      {
-        trackIdCollection[j].push(jsonData[i].spotify_track_uri.split(":")[2]);
-        j++;
-        trackIdCollection.push(new Array());
-        count=0;
-      }
-      else
-      {
-        trackIdCollection[j].push(jsonData[i].spotify_track_uri.split(":")[2]);
-        count++;
-      }
-    }
-    
-  }
-
-  return trackIdCollection;
-}
-
-app.get('/audiofeatures', (req, res) => {
- 
-    res.setHeader('Content-Type', 'text/html');
-    
-    let i=0; 
-    var intervalID=setInterval(async ()=> {
-      
-      var me, trk1, trk2;
-      me= await spotifyApi.getAudioFeaturesForTracks(trackIdCollection[i]);
-      trk1=await spotifyApi.getTracks(trackIdCollection[i].slice(0, trackIdCollection[i].length/2));
-      trk2=await spotifyApi.getTracks(trackIdCollection[i].slice(trackIdCollection[i].length/2, trackIdCollection[i].length));
-
-      for(let j=0; j<me.body.audio_features.length;j++)
-      {
-        if(me.body.audio_features[j].speechiness > 0 && me.body.audio_features[j].speechiness < 0.66)
-        {
-          // if(id_checker[me.body.audio_features[j].uri.split(":")[2]]==undefined)
-          if(trackID_tracker[me.body.audio_features[j].uri.split(":")[2]] == undefined) 
-          {
-            trackID_tracker[me.body.audio_features[j].uri.split(":")[2]] = 1;
-            // id_checker[me.body.audio_features[j].uri.split(":")[2]] = 1;
-
-            if(dict[Math.floor(me.body.audio_features[j].tempo)]==undefined)
-            // if(appendData[Math.floor(me.body.audio_features[j].tempo)]==undefined)
-            {
-              if(j>=trk1.body.tracks.length)
-              {
-                dict[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 1, track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
-                // appendData[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 4, track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2],  tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
-              }
-              else
-              {
-                dict[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 1, track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
-                // appendData[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 4, track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2],  tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
-              }
-
-            }
-            else
-            {
-              if(j>=trk1.body.tracks.length)
-              {
-                 dict[Math.floor(me.body.audio_features[j].tempo)].push({user_id: 1, track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
-                // appendData[Math.floor(me.body.audio_features[j].tempo)].push({user_id: 4, track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
-              }
-              else
-              {
-                dict[Math.floor(me.body.audio_features[j].tempo)].push({user_id: 1, track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
-                // appendData[Math.floor(me.body.audio_features[j].tempo)].push({user_id: 4, track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
-              }
-            }
-          }
-        }
-      }
-      i++;
-      console.log("Iteration Done: "+i);
-      if(i==trackIdCollection.length)
-      {
-          clearInterval(intervalID);
-
-          var keystring=JSON.stringify(trackID_tracker);
-          // var keystring=JSON.stringify(id_checker);
-          fs.writeFileSync('./public/Final Database/keys_multiuser.json', keystring,function(err, result) {
-            if(err) console.log('error', err);
-          });
-
-          var dictstring=JSON.stringify(dict);
-          // var dictstring=JSON.stringify(appendData);
-          fs.writeFile('./public/Final Database/multiuser.json', dictstring, function(err, result) {
-            if(err) console.log('error', err);
-          });
-  
-          // return res.redirect('/qpInterface');
-          return res.send("Dataset Made");
-      }
-    }, 1000);
-
-});  
-
-
 app.get('/qpInterface',(req, res)=>{
 
-  // res.setHeader('Content-Type', 'application/json');
   res.sendFile(__dirname + '/public/html/qpInterface.html');
     
 });
@@ -264,9 +141,180 @@ app.get('/getState', (req, res)=> {
   }, 1000);
 })
 
+app.get('/getTrackToPlay', (req, res) => {
+
+
+
+})
+
 app.listen(8888, () =>
    console.log(
      'HTTP Server up. Now go to http://localhost:8888/ in your browser.'
    )
  );
 
+
+
+//////////// Server Helper Functions ///////////
+
+//Use BPM results 
+var bpmAdded=0;
+var lol=setInterval(function(){
+  timeSeconds = new Date();
+  millisecondsCurr=timeSeconds.getTime();
+  if(endtrack)
+  {    
+    console.log("EndTrack")
+    flg=0;
+    trackArr.splice(0,1);
+    playSongs(trackArr);
+    // add=0;
+    bpmAdded=0;
+    endtrack=false;
+    // trackArr=[];
+  }
+  if(flag==1 && millisecondsCurr-millisecondsPrev > 1000 * document.getElementById('T_WAIT').value)
+  {
+      console.log("New BPM Added");
+      if(bpmAdded==0)
+      {
+        console.log("Tracking Song End");
+        triggerEndTrack();
+        bpmAdded=1;
+      }
+      testResults(Math.round(bpmAvg),user);
+        // trackArr=[];
+      add++;
+    flag=0;
+  }
+},1000);
+
+// Reading the JSON file data
+var qpDataset;
+fetch("../Final Database/multiuser.json")
+.then(response => {
+  return response.json();
+}).then(qpData=>{
+  qpDataset=qpData;
+})
+
+//Processing the JSON file data
+var trackArr=[];
+var flg=0
+var bpmPrev=0;
+var currFeatures;
+
+function testResults(avgBPM, userInterac) {
+
+  document.getElementById('bpm-indicator').style.color="#ffffff";
+  console.log("QUEUE UPDATE");
+  let bpm = avgBPM;
+  if(qpDataset[bpm]!=null)
+  {
+    fetch("/getCurrentID", {
+      method: "GET",
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+
+      currFeatures=data;
+      // trackArr=[];
+      qpDataset[bpm].sort((first,second) => {
+        if(document.getElementById('T_TYPE').value=='danceability'){
+          return first.danceability - second.danceability;
+        }
+        else if(document.getElementById('T_TYPE').value=='energy'){
+          return first.energy - second.energy;
+        }
+        else if(document.getElementById('T_TYPE').value=='liveness'){
+          return first.liveness - second.liveness;
+        }
+        else if(document.getElementById('T_TYPE').value=='valence'){
+          return first.valence - second.valence;
+        }
+        else if(document.getElementById('T_TYPE').value=='tempo'){
+          return first.tempo - second.tempo;
+        }
+        else if(document.getElementById('T_TYPE').value=='mode'){
+          return first.mode - second.mode;
+        }
+        else if(document.getElementById('T_TYPE').value=='time_signature'){
+          return first.time_signature - second.time_signature;
+        }
+      });
+      qpDataset[bpm].sort((first,second) => {
+        if(document.getElementById('T_TYPE').value=='danceability'){
+          return (Math.abs(first.danceability-currFeatures.danceability)) - (Math.abs(second.danceability-currFeatures.danceability));
+        }
+        else if(document.getElementById('T_TYPE').value=='energy'){
+          return (Math.abs(first.energy-currFeatures.energy)) - (Math.abs(second.energy-currFeatures.energy));
+        }
+        else if(document.getElementById('T_TYPE').value=='liveness'){
+          return (Math.abs(first.liveness-currFeatures.liveness)) - (Math.abs(second.liveness-currFeatures.liveness));
+        }
+        else if(document.getElementById('T_TYPE').value=='valence'){
+          return (Math.abs(first.valence-currFeatures.valence)) - (Math.abs(second.valence-currFeatures.valence));
+        }
+        else if(document.getElementById('T_TYPE').value=='tempo'){
+          return (Math.abs(first.tempo-currFeatures.tempo)) - (Math.abs(second.tempo-currFeatures.tempo))
+        }
+        else if(document.getElementById('T_TYPE').value=='mode'){
+          return (Math.abs(first.mode-currFeatures.mode)) - (Math.abs(second.mode-currFeatures.mode))
+        }
+        else if(document.getElementById('T_TYPE').value=='time_signature'){
+          return (Math.abs(first.time_signature-currFeatures.time_signature)) - (Math.abs(second.time_signature-currFeatures.time_signature));
+        }
+      });
+
+
+      //Choosing the first song for the user interacted
+      let l=0;
+      while(qpDataset[bpm][l].user_id != userInterac)
+      {
+        l++;
+      }
+      var temp=qpDataset[bpm].splice(0,l);
+      qpDataset[bpm].concat(temp);
+
+      createQueueTable();
+
+      var chk=0;
+      for(let i=0;i<qpDataset[bpm].length;i++)
+      {
+        if(add>1)
+        {
+          if(chk==0)
+          {
+            console.log("New Queue in the Making");
+            trackArr.splice(add-1,trackArr.length-1);
+            qply.splice(add-1,qply.length-1);
+            chk=1;
+          }
+          qply.push(qpDataset[bpm][i]);
+          trackArr.push("spotify:track:"+qpDataset[bpm][i].track_id);
+        }
+        else
+        {
+          console.log("When no queue is made");
+          qply.push(qpDataset[bpm][i]);
+          trackArr.push("spotify:track:"+qpDataset[bpm][i].track_id);
+          if(i == qpDataset[bpm].length-1)
+          {
+            flg=0;
+            playSongs(trackArr);
+          }
+        }
+        // appendTracks(qpDataset[bpm][i]);
+      }
+
+      for(let i=0; i<qply.length; i++)
+      {
+        appendTracks(qply[i]);
+      }
+    });
+  }
+}
