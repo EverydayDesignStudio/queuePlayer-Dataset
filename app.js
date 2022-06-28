@@ -1,12 +1,13 @@
+//Depedency variables
 const express = require('express')
-var SpotifyWebApi = require('spotify-web-api-node');
-
 var cors = require('cors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
 var fs= require('fs');
 var bodyParser = require("body-parser");
+var SpotifyWebApi = require('spotify-web-api-node');
 
+//Scope Definition for Spotify WebAPI calls
 const scopes = [
     'ugc-image-upload',
     'user-read-playback-state',
@@ -29,6 +30,7 @@ const scopes = [
     'user-follow-modify'
   ];
 
+//Initialising the SpotifyAPI node package
 var spotifyApi = new SpotifyWebApi({
     clientId: 'e5528e5bb8b24755ad89dbc0eae5bea8',
     clientSecret: 'c265137ac990469890c0b7e447d5ca23',
@@ -37,15 +39,16 @@ var spotifyApi = new SpotifyWebApi({
 
 var access_token;
 
+//Initialising the express server
 const app = express();
 app.use(bodyParser.json());
-
 const { ppid } = require('process');
 
 app.use(express.static(__dirname + '/public'))
    .use(cors())
    .use(cookieParser());
 
+//Authorization flow for the Spotify API 
 app.get('/login', (req, res) => {
     res.redirect(spotifyApi.createAuthorizeURL(scopes));
   });
@@ -95,25 +98,34 @@ spotifyApi
   });
 
 app.get('/qpInterface',(req, res)=>{
-
-  res.sendFile(__dirname + '/public/html/qpInterface.html');
-    
+  res.sendFile(__dirname + '/public/html/qpInterface.html');   
 });
 
-app.get('/getCurrentID', async (req,res) => {
+app.post('/getTrackToPlay', (req, res) => {
+  var trackInfos = readDatabase();
+  var bpmData=getDatafromBPM(trackInfos, req.body.bpm);
+  var songAddition = processDatabase(bpmData, req.body.userID);
+  queue=songAddition;
+  res.send(queue.shift());
+})
 
-  const playingTrack = await spotifyApi.getMyCurrentPlayingTrack();
-  playingID=playingTrack.body.item.id;
+app.post('/getTrackToQueue',(req, res)=>{
+  var trackInfos = readDatabase();
+  var bpmData=getDatafromBPM(trackInfos, req.body.bpm);
+  var songAddition = processDatabase(bpmData, req.body.userID);
+  queue.splice(req.body.offset,queue.length-req.body.offset);
+  queue=queue.concat(songAddition);
+  res.send(queue);
+})
 
-  const af= await spotifyApi.getAudioFeaturesForTrack(playingID);
-  res.send(af.body);
-});
-
+app.post('/continuePlaying', (req, res)=>{
+  res.send(queue.shift());
+})
 
 app.post('/playback',async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   const play= await spotifyApi.play({
-    "uris": req.body.queue
+    "uris": req.body.song,
   }).then(function() {
       console.log('Playback started');
     }, function(err) {
@@ -123,28 +135,25 @@ app.post('/playback',async (req, res) => {
 });
 
 app.get('/getState', (req, res)=> {
-  const si=setInterval(async ()=> {
     const state=spotifyApi.getMyCurrentPlaybackState()
     .then(function(data) {
-      // Output items
-      var wot=0;
-      if(wot==0 && data.body.progress_ms+2000>data.body.item.duration_ms)
+      if(data.body.is_playing)
       {
-        console.log('Finished Playing: ' + data.body.item.name);
-        clearInterval(si);
-        wot=1;
-        res.send({state:"eot"}); 
+        var wot=0;
+        if(wot==0 && data.body.progress_ms+2000>data.body.item.duration_ms)
+        {
+          wot=1;
+          console.log('Finished Playing: ' + data.body.item.name);
+          res.send({state:"ended"}); 
+        }
+        else
+        {
+          res.send({state:"playing"});
+        }
       }
     }, function(err) {
       console.log('Something went wrong!', err);
     });
-  }, 1000);
-})
-
-app.get('/getTrackToPlay', (req, res) => {
-
-
-
 })
 
 app.listen(8888, () =>
@@ -153,168 +162,173 @@ app.listen(8888, () =>
    )
  );
 
-
-
 //////////// Server Helper Functions ///////////
 
-//Use BPM results 
-var bpmAdded=0;
-var lol=setInterval(function(){
-  timeSeconds = new Date();
-  millisecondsCurr=timeSeconds.getTime();
-  if(endtrack)
-  {    
-    console.log("EndTrack")
-    flg=0;
-    trackArr.splice(0,1);
-    playSongs(trackArr);
-    // add=0;
-    bpmAdded=0;
-    endtrack=false;
-    // trackArr=[];
-  }
-  if(flag==1 && millisecondsCurr-millisecondsPrev > 1000 * document.getElementById('T_WAIT').value)
-  {
-      console.log("New BPM Added");
-      if(bpmAdded==0)
-      {
-        console.log("Tracking Song End");
-        triggerEndTrack();
-        bpmAdded=1;
-      }
-      testResults(Math.round(bpmAvg),user);
-        // trackArr=[];
-      add++;
-    flag=0;
-  }
-},1000);
+var queue = []; 
 
 // Reading the JSON file data
-var qpDataset;
-fetch("../Final Database/multiuser.json")
-.then(response => {
-  return response.json();
-}).then(qpData=>{
-  qpDataset=qpData;
-})
+function readDatabase()
+{
+  var qpDataset=require("./Final Database/Final Final/qp_multiuser.json");
+  return qpDataset;
+}
+
+function getDatafromBPM(qpData, bpm)
+{
+  //Handling the case when the specified bpm is not present and then the next lowest bpm is selected
+  var qpBPMData=new Array();
+  while(qpBPMData.length == 0)
+  {
+    for(let i=0;i<qpData.length;i++)
+    {
+      if(qpData[i].tempo==bpm)
+      {
+        qpBPMData.push(qpData[i]);
+      }
+    }
+    bpm--;
+  }
+  return qpBPMData;
+}
 
 //Processing the JSON file data
-var trackArr=[];
-var flg=0
-var bpmPrev=0;
-var currFeatures;
+function processDatabase(qpData,user)
+{
+  //Include Song Selection Algorithm
 
-function testResults(avgBPM, userInterac) {
+  //Sorting data according to danceability for now , until song selection algorithm
+  qpData.sort((first,second) => {
+      return first.danceability - second.danceability;
+  });
 
-  document.getElementById('bpm-indicator').style.color="#ffffff";
-  console.log("QUEUE UPDATE");
-  let bpm = avgBPM;
-  if(qpDataset[bpm]!=null)
+  //Choosing the first song for the user interacted
+  let l=0;
+  while(!qpData[l].user_id.includes(user))
   {
-    fetch("/getCurrentID", {
-      method: "GET",
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      }
-    })
-    .then(response => response.json())
-    .then(data => {
-
-      currFeatures=data;
-      // trackArr=[];
-      qpDataset[bpm].sort((first,second) => {
-        if(document.getElementById('T_TYPE').value=='danceability'){
-          return first.danceability - second.danceability;
-        }
-        else if(document.getElementById('T_TYPE').value=='energy'){
-          return first.energy - second.energy;
-        }
-        else if(document.getElementById('T_TYPE').value=='liveness'){
-          return first.liveness - second.liveness;
-        }
-        else if(document.getElementById('T_TYPE').value=='valence'){
-          return first.valence - second.valence;
-        }
-        else if(document.getElementById('T_TYPE').value=='tempo'){
-          return first.tempo - second.tempo;
-        }
-        else if(document.getElementById('T_TYPE').value=='mode'){
-          return first.mode - second.mode;
-        }
-        else if(document.getElementById('T_TYPE').value=='time_signature'){
-          return first.time_signature - second.time_signature;
-        }
-      });
-      qpDataset[bpm].sort((first,second) => {
-        if(document.getElementById('T_TYPE').value=='danceability'){
-          return (Math.abs(first.danceability-currFeatures.danceability)) - (Math.abs(second.danceability-currFeatures.danceability));
-        }
-        else if(document.getElementById('T_TYPE').value=='energy'){
-          return (Math.abs(first.energy-currFeatures.energy)) - (Math.abs(second.energy-currFeatures.energy));
-        }
-        else if(document.getElementById('T_TYPE').value=='liveness'){
-          return (Math.abs(first.liveness-currFeatures.liveness)) - (Math.abs(second.liveness-currFeatures.liveness));
-        }
-        else if(document.getElementById('T_TYPE').value=='valence'){
-          return (Math.abs(first.valence-currFeatures.valence)) - (Math.abs(second.valence-currFeatures.valence));
-        }
-        else if(document.getElementById('T_TYPE').value=='tempo'){
-          return (Math.abs(first.tempo-currFeatures.tempo)) - (Math.abs(second.tempo-currFeatures.tempo))
-        }
-        else if(document.getElementById('T_TYPE').value=='mode'){
-          return (Math.abs(first.mode-currFeatures.mode)) - (Math.abs(second.mode-currFeatures.mode))
-        }
-        else if(document.getElementById('T_TYPE').value=='time_signature'){
-          return (Math.abs(first.time_signature-currFeatures.time_signature)) - (Math.abs(second.time_signature-currFeatures.time_signature));
-        }
-      });
-
-
-      //Choosing the first song for the user interacted
-      let l=0;
-      while(qpDataset[bpm][l].user_id != userInterac)
-      {
-        l++;
-      }
-      var temp=qpDataset[bpm].splice(0,l);
-      qpDataset[bpm].concat(temp);
-
-      createQueueTable();
-
-      var chk=0;
-      for(let i=0;i<qpDataset[bpm].length;i++)
-      {
-        if(add>1)
-        {
-          if(chk==0)
-          {
-            console.log("New Queue in the Making");
-            trackArr.splice(add-1,trackArr.length-1);
-            qply.splice(add-1,qply.length-1);
-            chk=1;
-          }
-          qply.push(qpDataset[bpm][i]);
-          trackArr.push("spotify:track:"+qpDataset[bpm][i].track_id);
-        }
-        else
-        {
-          console.log("When no queue is made");
-          qply.push(qpDataset[bpm][i]);
-          trackArr.push("spotify:track:"+qpDataset[bpm][i].track_id);
-          if(i == qpDataset[bpm].length-1)
-          {
-            flg=0;
-            playSongs(trackArr);
-          }
-        }
-        // appendTracks(qpDataset[bpm][i]);
-      }
-
-      for(let i=0; i<qply.length; i++)
-      {
-        appendTracks(qply[i]);
-      }
-    });
+    l++;
   }
+  var temp=qpData.splice(0,l);
+  qpData=qpData.concat(temp);
+
+  return qpData;
 }
+
+// var trackArr=[];
+// var flg=0
+// var bpmPrev=0;
+// var currFeatures;
+
+// function testResults(avgBPM, userInterac) {
+
+//   document.getElementById('bpm-indicator').style.color="#ffffff";
+//   console.log("QUEUE UPDATE");
+//   let bpm = avgBPM;
+//   if(qpDataset[bpm]!=null)
+//   {
+//     fetch("/getCurrentID", {
+//       method: "GET",
+//       headers: {
+//         'Content-Type': 'application/json',
+//         'Accept': 'application/json'
+//       }
+//     })
+//     .then(response => response.json())
+//     .then(data => {
+
+//       currFeatures=data;
+//       // trackArr=[];
+//       qpDataset[bpm].sort((first,second) => {
+//         if(document.getElementById('T_TYPE').value=='danceability'){
+//           return first.danceability - second.danceability;
+//         }
+//         else if(document.getElementById('T_TYPE').value=='energy'){
+//           return first.energy - second.energy;
+//         }
+//         else if(document.getElementById('T_TYPE').value=='liveness'){
+//           return first.liveness - second.liveness;
+//         }
+//         else if(document.getElementById('T_TYPE').value=='valence'){
+//           return first.valence - second.valence;
+//         }
+//         else if(document.getElementById('T_TYPE').value=='tempo'){
+//           return first.tempo - second.tempo;
+//         }
+//         else if(document.getElementById('T_TYPE').value=='mode'){
+//           return first.mode - second.mode;
+//         }
+//         else if(document.getElementById('T_TYPE').value=='time_signature'){
+//           return first.time_signature - second.time_signature;
+//         }
+//       });
+//       qpDataset[bpm].sort((first,second) => {
+//         if(document.getElementById('T_TYPE').value=='danceability'){
+//           return (Math.abs(first.danceability-currFeatures.danceability)) - (Math.abs(second.danceability-currFeatures.danceability));
+//         }
+//         else if(document.getElementById('T_TYPE').value=='energy'){
+//           return (Math.abs(first.energy-currFeatures.energy)) - (Math.abs(second.energy-currFeatures.energy));
+//         }
+//         else if(document.getElementById('T_TYPE').value=='liveness'){
+//           return (Math.abs(first.liveness-currFeatures.liveness)) - (Math.abs(second.liveness-currFeatures.liveness));
+//         }
+//         else if(document.getElementById('T_TYPE').value=='valence'){
+//           return (Math.abs(first.valence-currFeatures.valence)) - (Math.abs(second.valence-currFeatures.valence));
+//         }
+//         else if(document.getElementById('T_TYPE').value=='tempo'){
+//           return (Math.abs(first.tempo-currFeatures.tempo)) - (Math.abs(second.tempo-currFeatures.tempo))
+//         }
+//         else if(document.getElementById('T_TYPE').value=='mode'){
+//           return (Math.abs(first.mode-currFeatures.mode)) - (Math.abs(second.mode-currFeatures.mode))
+//         }
+//         else if(document.getElementById('T_TYPE').value=='time_signature'){
+//           return (Math.abs(first.time_signature-currFeatures.time_signature)) - (Math.abs(second.time_signature-currFeatures.time_signature));
+//         }
+//       });
+
+
+//       //Choosing the first song for the user interacted
+//       let l=0;
+//       while(qpDataset[bpm][l].user_id != userInterac)
+//       {
+//         l++;
+//       }
+//       var temp=qpDataset[bpm].splice(0,l);
+//       qpDataset[bpm].concat(temp);
+
+//       createQueueTable();
+
+//       var chk=0;
+//       for(let i=0;i<qpDataset[bpm].length;i++)
+//       {
+//         if(add>1)
+//         {
+//           if(chk==0)
+//           {
+//             console.log("New Queue in the Making");
+//             trackArr.splice(add-1,trackArr.length-1);
+//             qply.splice(add-1,qply.length-1);
+//             chk=1;
+//           }
+//           qply.push(qpDataset[bpm][i]);
+//           trackArr.push("spotify:track:"+qpDataset[bpm][i].track_id);
+//         }
+//         else
+//         {
+//           console.log("When no queue is made");
+//           qply.push(qpDataset[bpm][i]);
+//           trackArr.push("spotify:track:"+qpDataset[bpm][i].track_id);
+//           if(i == qpDataset[bpm].length-1)
+//           {
+//             flg=0;
+//             playSongs(trackArr);
+//           }
+//         }
+//         // appendTracks(qpDataset[bpm][i]);
+//       }
+
+//       for(let i=0; i<qply.length; i++)
+//       {
+//         appendTracks(qply[i]);
+//       }
+//     });
+//   }
+// }

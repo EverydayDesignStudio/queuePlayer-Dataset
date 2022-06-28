@@ -1,10 +1,39 @@
 //Dev Variables
 var user;
 var playerID;
-
-//Queue for queuePlayer
-var qply=[];
+var trackArr=new Array();
+var isPlaying=false;
 var add=0;
+
+//Input Control
+window.addEventListener('keydown', function (e) {
+  console.log(e.key)
+  if(e.key==1)
+  {
+    user=1;
+    tapBPM(user);
+  }
+  else if(e.key==2)
+  {
+    user=2;
+    tapBPM(user);
+  }
+  else if(e.key==3)
+  {
+    user=3;
+    tapBPM(user);
+  }
+  else if(e.key==4)
+  {
+    user=4;
+    tapBPM(user);
+  }
+  else
+  {
+    user=0;
+    alert("Invalid key");
+  }
+}, false);
 
 //TapBPM control variables
 var count=0;
@@ -13,38 +42,6 @@ var millisecondsPrev=0;
 var millisecondsCurr=0;
 var bpmAvg=0;
 var flag=0;
-
-// window.onSpotifyWebPlaybackSDKReady = () => {
-//   const token = 'BQDH7AQjuww1q0-zllMAy6Wpt3GS3yth6liQNq418XCgcNEzHbBpkaN8OSOE-Z_NxFKqJo4moGAygJZGx4R6EuqNCb_tJ_x5a6tUqutfzU5__I97CLHNTFx_I2u6pwEPb27YSuhipq9Tb3ypNNxdxMIhCaLxKTC3fTmHSM5zqQyDZaudIAFiZWaAVug1QwZozUzkBcI7HfSPJHeEvP4Y-nz707M-';
-//   const player = new Spotify.Player({
-//     name: 'Web Playback SDK Quick Start Player',
-//     getOAuthToken: cb => { cb(token); },
-//     volume: 0.5
-//   });
-//   // Ready
-//   player.addListener('ready', ({ device_id }) => {
-//     console.log('Ready with Device ID', device_id);
-//     playerID=device_id;
-//   });
-
-//   // Not Ready
-//   player.addListener('not_ready', ({ device_id }) => {
-//     console.log('Device ID has gone offline', device_id);
-//   });
-
-//   player.addListener('player_state_changed', ({
-//     position,
-//     duration,
-//     track_window: { current_track }
-//   }) => {
-//     console.log('Currently Playing', current_track);
-//     console.log('Position in Song', position);
-//     console.log('Duration of Song', duration);
-//   });
-
-//   player.connect();
-// }
-
 
 function resetCount(){
   count=0;
@@ -98,8 +95,98 @@ function setUserColor(userInterac){
   }
 }
 
-var endtrack=false;
-async function triggerEndTrack(){
+//Using tapBPM results
+var bpmWaitChecker=setInterval(async function(){ 
+  timeSeconds= new Date();
+  millisecondsCurr=timeSeconds.getTime();
+  if(flag==1 && millisecondsCurr-millisecondsPrev > 1000 * document.getElementById('T_WAIT').value)
+  {
+    console.log("BPM requested");
+    if(isPlaying)
+    {
+      add++;
+      pushBPMtoQueue(add);
+    }
+    else
+    {
+      pushBPMtoPlay(); 
+    }
+
+    createQueueTable();
+
+    flag=0;
+  }
+},1000);
+
+async function pushBPMtoPlay() 
+{
+  await fetch('/getTrackToPlay',{
+    method:'POST',
+    headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+    },
+    body: JSON.stringify({
+      "bpm":Math.round(bpmAvg),
+      "userID":user,
+    })
+  }).then(async response => {
+    return await response.json();
+  }).then(data=>{
+    console.log(data);
+    trackArr=[];
+    trackArr.push("spotify:track:"+data.track_id);
+    playSong(trackArr);
+  });
+}
+
+async function pushBPMtoQueue(add)
+{
+  await fetch('/getTrackToQueue',{
+    method:'POST',
+    headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+    },
+    body: JSON.stringify({
+      "bpm":Math.round(bpmAvg),
+      "userID":user,
+      "offset":add,
+    })
+  }).then(async response => {
+    return await response.json();
+  }).then(data=>{
+    console.log("queue updated");
+    console.log(data);
+    let i=0;
+    while(i<data.length)
+    {
+      appendTracks(data[i])
+      i++;
+    }
+  });
+}
+
+async function queuePlayContinue()
+{
+  await fetch('/continuePlaying',{
+    method:'POST',
+    headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+    },
+  }).then(async response => {
+    return await response.json();
+  }).then(data=>{
+    console.log(data);
+    trackArr=[];
+    trackArr.push("spotify:track:"+data.track_id);
+    playSong(trackArr);
+    add--;
+  });
+}
+
+var bpmAddedChecker = setInterval(async function(){
   await fetch("/getState", {
     method: "GET",
     headers: {
@@ -109,74 +196,84 @@ async function triggerEndTrack(){
   }).then(async response => {
     return await response.json();
   }).then(data=>{
-    if(data.state=="eot")
+    if(data.state=="playing")
     {
-      endtrack=true;
+      isPlaying=true;
+    }
+    else if(data.state=="ended")
+    {
+      isPlaying=false;
+      queuePlayContinue(); 
     }
   });
+},1000)
+
+function playSong(trackArr){ 
+  fetch("/playback", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: 
+    JSON.stringify({
+      "song":trackArr,
+    })
+  })
+  .then(response => {
+    if(!response.ok)
+    {
+      console.error(response)
+    }
+    else
+    {
+      return response.json();
+    }
+  })
+
+  // if(add>=1)
+  // {
+  //   add--;
+  // }
 }
 
-window.addEventListener('keydown', function (e) {
-  console.log(e.key)
-  if(e.key==1)
-  {
-    user=1;
-    tapBPM(user);
-  }
-  else if(e.key==2)
-  {
-    user=2;
-    tapBPM(user);
-  }
-  else if(e.key==3)
-  {
-    user=3;
-    tapBPM(user);
-  }
-  else if(e.key==4)
-  {
-    user=4;
-    tapBPM(user);
-  }
-  else
-  {
-    user=0;
-    alert("Invalid key");
-  }
-}, false);
 
-function playSongs(trackArr){ 
+// //Use BPM results 
+// var bpmAdded=0;
+// var lol=setInterval(function(){
+//   timeSeconds = new Date();
+//   millisecondsCurr=timeSeconds.getTime();
+//   if(endtrack)
+//   {    
+//     console.log("EndTrack")
+//     flg=0;
+//     trackArr.splice(0,1);
+//     playSongs(trackArr);
+//     // add=0;
+//     bpmAdded=0;
+//     endtrack=false;
+//     // trackArr=[];
+//   }
+//   if(flag==1 && millisecondsCurr-millisecondsPrev > 1000 * document.getElementById('T_WAIT').value)
+//   {
+//       console.log("New BPM Added");
+//       if(bpmAdded==0)
+//       {
+//         console.log("Tracking Song End");
+//         triggerEndTrack();
+//         bpmAdded=1;
+//       }
+//       testResults(Math.round(bpmAvg),user);
+//         // trackArr=[];
+//       add++;
+//     flag=0;
+//   }
+// },1000);
 
-  if(trackArr!="" && flg==0)
-  {
-    fetch("/playback", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: 
-      JSON.stringify({
-        "queue":trackArr,
-      })
-    })
-    .then(response => {
-      if(!response.ok)
-      {
-        console.error(response)
-      }
-      else
-      {
-        return response.json();
-      }
-    })
-    flg=1;
-  }
-}
 
 //Creation of Table of Tracks
 var queueDiv=document.getElementById('queue');
 // let tableHeaders = ['User ID', 'Track Name', 'Track ID', 'Tempo', 'Danceability', 'Energy', 'Liveness', 'Valence', 'Mode', 'Time Signature'];
-let tableHeaders = ['User ID', 'Track Name', 'Tempo', 'Danceability', 'Energy', 'Liveness', 'Valence', 'Mode', 'Time Signature'];
+let tableHeaders = ['User ID', 'Track ID', 'Tempo', 'Danceability', 'Energy', 'Liveness', 'Valence', 'Cluster No.'];
 
 
 const createQueueTable = () => {
@@ -216,8 +313,8 @@ const appendTracks=(track) =>{
   let userID=document.createElement('td');
   userID.innerText=track.user_id;
 
-  let trackName=document.createElement('td');
-  trackName.innerText=track.track_name;
+  let trackID=document.createElement('td');
+  trackID.innerText=track.track_id;
 
   // let trackID=document.createElement('td');
   // trackID.innerText=track.track_id;
@@ -237,13 +334,10 @@ const appendTracks=(track) =>{
   let valence=document.createElement('td');
   valence.innerText=track.valence;
 
-  let mode=document.createElement('td');
-  mode.innerText=track.mode;
+  let cluster=document.createElement('td');
+  cluster.innerText=track.cluster_number;
 
-  let timeSignature=document.createElement('td');
-  timeSignature.innerText=track.time_signature;
-
-  queueTableBodyRow.append(userID,trackName,tempo,danceability,energy,liveness,valence,mode,timeSignature);
+  queueTableBodyRow.append(userID,trackID,tempo,danceability,energy,liveness,valence,cluster);
   // queueTableBodyRow.append(userID,trackName,trackID,tempo,danceability,energy,liveness,valence,mode,timeSignature);
 
 
@@ -251,8 +345,8 @@ const appendTracks=(track) =>{
 
 }
 
-function rearrangeQueue(){
-  testResults(Math.round(bpmAvg));
-  document.getElementById('T_SELECT').blur();
-}
+// function rearrangeQueue(){
+//   testResults(Math.round(bpmAvg));
+//   document.getElementById('T_SELECT').blur();
+// }
 
