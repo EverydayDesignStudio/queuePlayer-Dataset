@@ -16,42 +16,34 @@
       <div id="mainPanelHeader">
 
         <div id="mainPanel-left">
-          Welcome to Queue Player!!!
+          <div id="player-container">
+            <p id="cp-label">Currently Playing,</p>
+            <p id="song-name">-</p>
+            <p id="song-info1">Users: [1,2] | Track ID: "adsaw123123daewae" | Tempo: 223</p>
+            <p id="song-info2">Danceability: 0.3423 | Energy: 0.142 | Liveness: 0.123 | Valence: 0.1231</p>
+          </div>
         </div>
 
         <div id="mainPanel-right">
           <div id="bpm-showcase">
-            <h1 id="bpm-indicator">-</h1>
-            <p id="bpm-label">BPM</p>
+            <div id="bpm-container">
+              <p id="bpm-indicator">-</p>
+              <p id="bpm-label">BPM</p>
+              <p id="wait-indicator">  
+                Wait Time
+                <select id='T_WAIT'>
+                  <option value='1'>1</option>
+                  <option value='2' SELECTED>2</option>
+                  <option value='3'>3</option>
+                  <option value='4'>4</option>
+                  <option value='5'>5</option>
+                </select>
+              </p>
+            </div>
           </div>
-          <p id="wait-indicator">  
-            Wait Time
-            <select id='T_WAIT'>
-              <option value='1'>1</option>
-              <option value='2' SELECTED>2</option>
-              <option value='3'>3</option>
-              <option value='4'>4</option>
-              <option value='5'>5</option>
-            </select>
-          </p>
-          <p id="sort-indicator">
-            Sort according to : 
-            <select id='T_TYPE'>
-              <option value='tempo'>tempo</option>
-              <option value='danceability' SELECTED>danceability</option>
-              <option value='liveness'>liveness</option>
-              <option value='energy'>energy</option>
-              <option value='mode'>mode</option>
-              <option value='time_signature'>time_signature</option>
-              <option value='valence'>valence</option>
-            </select>
-            <input type="button" id='T_SELECT' class="buttons" value="SELECT" onclick="rearrangeQueue()">
-          </p>
         </div>
       </div>
-
       <div id='queue'>
-        hi
       </div>
     </div>
   </body>

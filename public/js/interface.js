@@ -95,6 +95,7 @@ function setUserColor(userInterac){
   }
 }
 
+
 //Using tapBPM results
 var bpmWaitChecker=setInterval(async function(){ 
   timeSeconds= new Date();
@@ -134,6 +135,7 @@ async function pushBPMtoPlay()
     return await response.json();
   }).then(data=>{
     console.log(data);
+    justforWebsite(data);
     trackArr=[];
     trackArr.push("spotify:track:"+data.track_id);
     playSong(trackArr);
@@ -167,25 +169,6 @@ async function pushBPMtoQueue(add)
   });
 }
 
-async function queuePlayContinue()
-{
-  await fetch('/continuePlaying',{
-    method:'POST',
-    headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-    },
-  }).then(async response => {
-    return await response.json();
-  }).then(data=>{
-    console.log(data);
-    trackArr=[];
-    trackArr.push("spotify:track:"+data.track_id);
-    playSong(trackArr);
-    add--;
-  });
-}
-
 var bpmAddedChecker = setInterval(async function(){
   await fetch("/getState", {
     method: "GET",
@@ -199,6 +182,7 @@ var bpmAddedChecker = setInterval(async function(){
     if(data.state=="playing")
     {
       isPlaying=true;
+      document.getElementById('song-name').innerHTML=data.song;
     }
     else if(data.state=="ended")
     {
@@ -208,7 +192,58 @@ var bpmAddedChecker = setInterval(async function(){
   });
 },1000)
 
+async function queuePlayContinue()
+{
+  await fetch('/continuePlaying',{
+    method:'POST',
+    headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+    },
+  }).then(async response => {
+    return await response.json();
+  }).then(data=>{
+    
+    createQueueTable();
+    let i=0;
+    while(i<data.queue.length)
+    {
+      appendTracks(data.queue[i])
+      i++;
+    }
+    justforWebsite(data.song);
+    trackArr=[];
+    trackArr.push("spotify:track:"+data.song.track_id);
+    playSong(trackArr);
+    add--;
+  });
+}
+
+function justforWebsite(song)
+{
+  document.getElementById('song-info1').innerHTML="Users: " + song.user_id + " | Track ID: "+ song.track_id+ " | Tempo: " + song.tempo;
+  document.getElementById('song-info2').innerHTML="Danceability: " + song.danceability+ " | Energy: " + song.energy+ " | Liveness: " + song.liveness+ " | Valence: "+ song.valence;
+}
+
 function playSong(trackArr){ 
+
+  fetch("/getTrack", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: 
+    JSON.stringify({
+      "id":trackArr[0].split(":")[2],
+    })
+  })
+  .then(async response => {
+    return await response.json();
+  })
+  .then(data=>{
+    document.getElementById('song-name').innerHTML=data.songName;
+  })
+
   fetch("/playback", {
     method: "POST",
     headers: {
@@ -229,52 +264,11 @@ function playSong(trackArr){
       return response.json();
     }
   })
-
-  // if(add>=1)
-  // {
-  //   add--;
-  // }
 }
-
-
-// //Use BPM results 
-// var bpmAdded=0;
-// var lol=setInterval(function(){
-//   timeSeconds = new Date();
-//   millisecondsCurr=timeSeconds.getTime();
-//   if(endtrack)
-//   {    
-//     console.log("EndTrack")
-//     flg=0;
-//     trackArr.splice(0,1);
-//     playSongs(trackArr);
-//     // add=0;
-//     bpmAdded=0;
-//     endtrack=false;
-//     // trackArr=[];
-//   }
-//   if(flag==1 && millisecondsCurr-millisecondsPrev > 1000 * document.getElementById('T_WAIT').value)
-//   {
-//       console.log("New BPM Added");
-//       if(bpmAdded==0)
-//       {
-//         console.log("Tracking Song End");
-//         triggerEndTrack();
-//         bpmAdded=1;
-//       }
-//       testResults(Math.round(bpmAvg),user);
-//         // trackArr=[];
-//       add++;
-//     flag=0;
-//   }
-// },1000);
-
 
 //Creation of Table of Tracks
 var queueDiv=document.getElementById('queue');
-// let tableHeaders = ['User ID', 'Track Name', 'Track ID', 'Tempo', 'Danceability', 'Energy', 'Liveness', 'Valence', 'Mode', 'Time Signature'];
 let tableHeaders = ['User ID', 'Track ID', 'Tempo', 'Danceability', 'Energy', 'Liveness', 'Valence', 'Cluster No.'];
-
 
 const createQueueTable = () => {
   while(queueDiv.firstChild){
@@ -316,9 +310,6 @@ const appendTracks=(track) =>{
   let trackID=document.createElement('td');
   trackID.innerText=track.track_id;
 
-  // let trackID=document.createElement('td');
-  // trackID.innerText=track.track_id;
-
   let tempo=document.createElement('td');
   tempo.innerText=track.tempo;
 
@@ -338,15 +329,10 @@ const appendTracks=(track) =>{
   cluster.innerText=track.cluster_number;
 
   queueTableBodyRow.append(userID,trackID,tempo,danceability,energy,liveness,valence,cluster);
-  // queueTableBodyRow.append(userID,trackName,trackID,tempo,danceability,energy,liveness,valence,mode,timeSignature);
-
 
   queueTableBody.append(queueTableBodyRow);
 
 }
 
-// function rearrangeQueue(){
-//   testResults(Math.round(bpmAvg));
-//   document.getElementById('T_SELECT').blur();
-// }
+
 

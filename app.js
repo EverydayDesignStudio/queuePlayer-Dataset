@@ -119,7 +119,8 @@ app.post('/getTrackToQueue',(req, res)=>{
 })
 
 app.post('/continuePlaying', (req, res)=>{
-  res.send(queue.shift());
+  var q=queue.shift();
+  res.send({"queue": queue, "song":q});
 })
 
 app.post('/playback',async (req, res) => {
@@ -144,16 +145,24 @@ app.get('/getState', (req, res)=> {
         {
           wot=1;
           console.log('Finished Playing: ' + data.body.item.name);
-          res.send({state:"ended"}); 
+          res.send({song:data.body.item.name,state:"ended"}); 
         }
         else
         {
-          res.send({state:"playing"});
+          res.send({song:data.body.item.name,state:"playing"});
         }
       }
     }, function(err) {
       console.log('Something went wrong!', err);
     });
+})
+
+app.post('/getTrack', (req, res) => {
+  const track=spotifyApi.getTrack(req.body.id)
+  .then(function(song) {
+    console.log(song.body.name);
+    res.send({songName:song.body.name});
+  })
 })
 
 app.listen(8888, () =>
@@ -213,122 +222,3 @@ function processDatabase(qpData,user)
   return qpData;
 }
 
-// var trackArr=[];
-// var flg=0
-// var bpmPrev=0;
-// var currFeatures;
-
-// function testResults(avgBPM, userInterac) {
-
-//   document.getElementById('bpm-indicator').style.color="#ffffff";
-//   console.log("QUEUE UPDATE");
-//   let bpm = avgBPM;
-//   if(qpDataset[bpm]!=null)
-//   {
-//     fetch("/getCurrentID", {
-//       method: "GET",
-//       headers: {
-//         'Content-Type': 'application/json',
-//         'Accept': 'application/json'
-//       }
-//     })
-//     .then(response => response.json())
-//     .then(data => {
-
-//       currFeatures=data;
-//       // trackArr=[];
-//       qpDataset[bpm].sort((first,second) => {
-//         if(document.getElementById('T_TYPE').value=='danceability'){
-//           return first.danceability - second.danceability;
-//         }
-//         else if(document.getElementById('T_TYPE').value=='energy'){
-//           return first.energy - second.energy;
-//         }
-//         else if(document.getElementById('T_TYPE').value=='liveness'){
-//           return first.liveness - second.liveness;
-//         }
-//         else if(document.getElementById('T_TYPE').value=='valence'){
-//           return first.valence - second.valence;
-//         }
-//         else if(document.getElementById('T_TYPE').value=='tempo'){
-//           return first.tempo - second.tempo;
-//         }
-//         else if(document.getElementById('T_TYPE').value=='mode'){
-//           return first.mode - second.mode;
-//         }
-//         else if(document.getElementById('T_TYPE').value=='time_signature'){
-//           return first.time_signature - second.time_signature;
-//         }
-//       });
-//       qpDataset[bpm].sort((first,second) => {
-//         if(document.getElementById('T_TYPE').value=='danceability'){
-//           return (Math.abs(first.danceability-currFeatures.danceability)) - (Math.abs(second.danceability-currFeatures.danceability));
-//         }
-//         else if(document.getElementById('T_TYPE').value=='energy'){
-//           return (Math.abs(first.energy-currFeatures.energy)) - (Math.abs(second.energy-currFeatures.energy));
-//         }
-//         else if(document.getElementById('T_TYPE').value=='liveness'){
-//           return (Math.abs(first.liveness-currFeatures.liveness)) - (Math.abs(second.liveness-currFeatures.liveness));
-//         }
-//         else if(document.getElementById('T_TYPE').value=='valence'){
-//           return (Math.abs(first.valence-currFeatures.valence)) - (Math.abs(second.valence-currFeatures.valence));
-//         }
-//         else if(document.getElementById('T_TYPE').value=='tempo'){
-//           return (Math.abs(first.tempo-currFeatures.tempo)) - (Math.abs(second.tempo-currFeatures.tempo))
-//         }
-//         else if(document.getElementById('T_TYPE').value=='mode'){
-//           return (Math.abs(first.mode-currFeatures.mode)) - (Math.abs(second.mode-currFeatures.mode))
-//         }
-//         else if(document.getElementById('T_TYPE').value=='time_signature'){
-//           return (Math.abs(first.time_signature-currFeatures.time_signature)) - (Math.abs(second.time_signature-currFeatures.time_signature));
-//         }
-//       });
-
-
-//       //Choosing the first song for the user interacted
-//       let l=0;
-//       while(qpDataset[bpm][l].user_id != userInterac)
-//       {
-//         l++;
-//       }
-//       var temp=qpDataset[bpm].splice(0,l);
-//       qpDataset[bpm].concat(temp);
-
-//       createQueueTable();
-
-//       var chk=0;
-//       for(let i=0;i<qpDataset[bpm].length;i++)
-//       {
-//         if(add>1)
-//         {
-//           if(chk==0)
-//           {
-//             console.log("New Queue in the Making");
-//             trackArr.splice(add-1,trackArr.length-1);
-//             qply.splice(add-1,qply.length-1);
-//             chk=1;
-//           }
-//           qply.push(qpDataset[bpm][i]);
-//           trackArr.push("spotify:track:"+qpDataset[bpm][i].track_id);
-//         }
-//         else
-//         {
-//           console.log("When no queue is made");
-//           qply.push(qpDataset[bpm][i]);
-//           trackArr.push("spotify:track:"+qpDataset[bpm][i].track_id);
-//           if(i == qpDataset[bpm].length-1)
-//           {
-//             flg=0;
-//             playSongs(trackArr);
-//           }
-//         }
-//         // appendTracks(qpDataset[bpm][i]);
-//       }
-
-//       for(let i=0; i<qply.length; i++)
-//       {
-//         appendTracks(qply[i]);
-//       }
-//     });
-//   }
-// }
