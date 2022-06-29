@@ -76,7 +76,43 @@ th{
 }  
 
 #sidePanelHeader{
-    margin: 10px 20px;
+    position: relative;
+    width: 100%;
+    height: 30vh;
+    /* margin: 10px 20px; */
+}
+
+#user-indicator{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size:24px;
+}
+#qp-container{
+    width: 100%;
+    height: 70vh;
+}
+
+#q1{
+    border:1px solid #fff;
+    width: 100%;
+    height: 25%;
+}
+#q2{
+    border:1px solid #fff;
+    width: 100%;
+    height: 25%;
+}
+#q3{
+    border:1px solid #fff;
+    width: 100%;
+    height: 25%;
+}
+#q4{
+    border:1px solid #fff;
+    width: 100%;
+    height: 25%;
 }
 
 #mainPanel{

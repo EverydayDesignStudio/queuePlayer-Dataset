@@ -134,10 +134,10 @@ async function pushBPMtoPlay()
   }).then(async response => {
     return await response.json();
   }).then(data=>{
-    console.log(data);
-    justforWebsite(data);
+    justforWebsite(data.song);
+    queuePlayerSections(data.color)
     trackArr=[];
-    trackArr.push("spotify:track:"+data.track_id);
+    trackArr.push("spotify:track:"+data.song.track_id);
     playSong(trackArr);
   });
 }
@@ -159,13 +159,13 @@ async function pushBPMtoQueue(add)
     return await response.json();
   }).then(data=>{
     console.log("queue updated");
-    console.log(data);
     let i=0;
-    while(i<data.length)
+    while(i<data.queue.length)
     {
-      appendTracks(data[i])
+      appendTracks(data.queue[i])
       i++;
     }
+    queuePlayerSections(data.color)
   });
 }
 
@@ -215,14 +215,9 @@ async function queuePlayContinue()
     trackArr=[];
     trackArr.push("spotify:track:"+data.song.track_id);
     playSong(trackArr);
+    queuePlayerSections(data.color)
     add--;
   });
-}
-
-function justforWebsite(song)
-{
-  document.getElementById('song-info1').innerHTML="Users: " + song.user_id + " | Track ID: "+ song.track_id+ " | Tempo: " + song.tempo;
-  document.getElementById('song-info2').innerHTML="Danceability: " + song.danceability+ " | Energy: " + song.energy+ " | Liveness: " + song.liveness+ " | Valence: "+ song.valence;
 }
 
 function playSong(trackArr){ 
@@ -264,6 +259,45 @@ function playSong(trackArr){
       return response.json();
     }
   })
+}
+
+
+function queuePlayerSections(color) 
+{
+  console.log(color);
+  for(let i=0;i<color.length;i++)
+  {
+    var q=document.querySelector('#q'+(i+1));
+    if(color[i].length>1)
+    {
+      var str=""
+      for(let j=0;j<color[i].length;j++)
+      {
+        if(j==0)
+        {
+          str+=color[i][j];
+        }
+        else
+        {
+          str+=","+color[i][j];
+        }
+      }
+      q.style.backgroundImage='linear-gradient('+str+')';
+    }
+    else
+    {
+      str=color[i][0];
+      q.style.backgroundColor=str;
+    }
+
+
+  }
+}
+
+function justforWebsite(song)
+{
+  document.getElementById('song-info1').innerHTML="Users: " + song.user_id + " | Track ID: "+ song.track_id+ " | Tempo: " + song.tempo;
+  document.getElementById('song-info2').innerHTML="Danceability: " + song.danceability+ " | Energy: " + song.energy+ " | Liveness: " + song.liveness+ " | Valence: "+ song.valence;
 }
 
 //Creation of Table of Tracks

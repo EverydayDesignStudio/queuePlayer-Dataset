@@ -106,7 +106,9 @@ app.post('/getTrackToPlay', (req, res) => {
   var bpmData=getDatafromBPM(trackInfos, req.body.bpm);
   var songAddition = processDatabase(bpmData, req.body.userID);
   queue=songAddition;
-  res.send(queue.shift());
+  var q=queue.shift();
+  var cr=getColorSequence(queue);
+  res.send({"queue": queue, "song":q, "color": cr});
 })
 
 app.post('/getTrackToQueue',(req, res)=>{
@@ -115,12 +117,14 @@ app.post('/getTrackToQueue',(req, res)=>{
   var songAddition = processDatabase(bpmData, req.body.userID);
   queue.splice(req.body.offset,queue.length-req.body.offset);
   queue=queue.concat(songAddition);
-  res.send(queue);
+  var cr=getColorSequence(queue);
+  res.send({"queue": queue, "color": cr});
 })
 
 app.post('/continuePlaying', (req, res)=>{
   var q=queue.shift();
-  res.send({"queue": queue, "song":q});
+  var cr=getColorSequence(queue);
+  res.send({"queue": queue, "song":q, "color": cr});
 })
 
 app.post('/playback',async (req, res) => {
@@ -174,6 +178,7 @@ app.listen(8888, () =>
 //////////// Server Helper Functions ///////////
 
 var queue = []; 
+var colorArr = [];
 
 // Reading the JSON file data
 function readDatabase()
@@ -220,5 +225,37 @@ function processDatabase(qpData,user)
   qpData=qpData.concat(temp);
 
   return qpData;
+}
+
+function getColorSequence(que)
+{
+  colorArr = [];
+  for(let i=0;i<4;i++)
+  {
+    var temp=[];
+    let j=0;
+    while(j<que[i].user_id.length)
+    {
+      if(que[i].user_id[j]==1)
+      {
+        temp.push('#FF0000');
+      }
+      else if(que[i].user_id[j]==2)
+      {
+        temp.push('#0000FF');
+      }
+      else if(que[i].user_id[j]==3)
+      {
+        temp.push('#00FF00');
+      }
+      else if(que[i].user_id[j]==4)
+      {
+        temp.push('#FFFF00');
+      }
+      j++;
+    }
+    colorArr.push(temp);
+  }
+  return colorArr;
 }
 
