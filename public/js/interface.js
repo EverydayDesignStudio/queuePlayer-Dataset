@@ -136,6 +136,12 @@ async function pushBPMtoPlay()
   }).then(data=>{
     justforWebsite(data.song);
     queuePlayerSections(data.color)
+    let i=0;
+    while(i<data.queue.length)
+    {
+      appendTracks(data.queue[i])
+      i++;
+    }
     trackArr=[];
     trackArr.push("spotify:track:"+data.song.track_id);
     playSong(trackArr);
@@ -169,7 +175,7 @@ async function pushBPMtoQueue(add)
   });
 }
 
-var bpmAddedChecker = setInterval(async function(){
+var bpmAddedChecker = setInterval(async function (){
   await fetch("/getState", {
     method: "GET",
     headers: {
@@ -190,7 +196,7 @@ var bpmAddedChecker = setInterval(async function(){
       queuePlayContinue(); 
     }
   });
-},1000)
+},500)
 
 async function queuePlayContinue()
 {
