@@ -3,7 +3,7 @@ var user;
 var playerID;
 var trackArr=new Array();
 var isPlaying=false;
-var add=0;
+var add=-1;
 
 //Input Control
 window.addEventListener('keydown', function (e) {
@@ -228,6 +228,7 @@ async function queuePlayContinue()
 
 function playSong(trackArr){ 
 
+  //Just to get the name of the track
   fetch("/getTrack", {
     method: "POST",
     headers: {
@@ -274,9 +275,11 @@ function queuePlayerSections(color)
   for(let i=0;i<color.length;i++)
   {
     var q=document.querySelector('#q'+(i+1));
+    q.style.backgroundColor="none";
+    q.style.backgroundImage="none";
+    var str=""
     if(color[i].length>1)
     {
-      var str=""
       for(let j=0;j<color[i].length;j++)
       {
         if(j==0)

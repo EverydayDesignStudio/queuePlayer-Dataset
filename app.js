@@ -97,10 +97,12 @@ spotifyApi
       }
   });
 
+//Loads the client website
 app.get('/qpInterface',(req, res)=>{
   res.sendFile(__dirname + '/public/html/qpInterface.html');   
 });
 
+//Get the Track to play as requested by the client
 app.post('/getTrackToPlay', (req, res) => {
   var trackInfos = readDatabase();
   var bpmData=getDatafromBPM(trackInfos, req.body.bpm);
@@ -111,6 +113,8 @@ app.post('/getTrackToPlay', (req, res) => {
   res.send({"queue": queue, "song":q, "color": cr});
 })
 
+
+// Get the track into the queue 
 app.post('/getTrackToQueue',(req, res)=>{
   var trackInfos = readDatabase();
   var bpmData=getDatafromBPM(trackInfos, req.body.bpm);
@@ -121,12 +125,14 @@ app.post('/getTrackToQueue',(req, res)=>{
   res.send({"queue": queue, "color": cr});
 })
 
+// Get the track from the queue to automatically continue playing
 app.post('/continuePlaying', (req, res)=>{
   var q=queue.shift();
   var cr=getColorSequence(queue);
   res.send({"queue": queue, "song":q, "color": cr});
 })
 
+//Play the song , finds the active spotify player if device id not specified
 app.post('/playback',async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   const play= await spotifyApi.play({
@@ -139,6 +145,7 @@ app.post('/playback',async (req, res) => {
   });
 });
 
+// Gets the state of the active player to check if song has ended or playing
 app.get('/getState', (req, res)=> {
     const state=spotifyApi.getMyCurrentPlaybackState()
     .then(function(data) {
@@ -162,6 +169,7 @@ app.get('/getState', (req, res)=> {
     });
 })
 
+//Gets the name of the song playing, just for the website
 app.post('/getTrack', (req, res) => {
   const track=spotifyApi.getTrack(req.body.id)
   .then(function(song) {
