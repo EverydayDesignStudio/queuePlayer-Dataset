@@ -110,23 +110,37 @@ app.post('/getTrackToPlay', (req, res) => {
   queue=songAddition;
   var q=queue.shift();
   var cr=getColorSequence(queue);
+  userControl(req.body.userID);
   res.send({"queue": queue, "song":q, "color": cr});
 })
 
 
 // Get the track into the queue 
 app.post('/getTrackToQueue',(req, res)=>{
-  var trackInfos = readDatabase();
-  var bpmData=getDatafromBPM(trackInfos, req.body.bpm);
-  var songAddition = processDatabase(bpmData, req.body.userID);
-  queue.splice(req.body.offset,queue.length-req.body.offset);
-  queue=queue.concat(songAddition);
-  var cr=getColorSequence(queue);
-  res.send({"queue": queue, "color": cr});
+  if(!userCheck(req.body.userID))
+  {
+    var trackInfos = readDatabase();
+    var bpmData=getDatafromBPM(trackInfos, req.body.bpm);
+    var songAddition = processDatabase(bpmData, req.body.userID);
+    queue.splice(req.body.offset,queue.length-req.body.offset);
+    queue=queue.concat(songAddition);
+    var cr=getColorSequence(queue);
+    userControl(req.body.userID);
+    res.send({"queue": queue, "color": cr});
+  }
+  else
+  {
+    res.send({"queue":queue, color:cr});
+  }
+
 })
 
 // Get the track from the queue to automatically continue playing
 app.post('/continuePlaying', (req, res)=>{
+  user1Added=false;
+  user2Added=false;
+  user3Added=false;
+  user4Added=false;
   var q=queue.shift();
   var cr=getColorSequence(queue);
   res.send({"queue": queue, "song":q, "color": cr});
@@ -188,6 +202,10 @@ app.listen(8888, () =>
 
 var queue = []; 
 var colorArr = [];
+var user1Added=false;
+var user2Added=false;
+var user3Added=false;
+var user4Added=false;
 
 // Reading the JSON file data
 function readDatabase()
@@ -214,6 +232,7 @@ function getDatafromBPM(qpData, bpm)
   return qpBPMData;
 }
 
+
 //Processing the JSON file data
 function processDatabase(qpData,user)
 {
@@ -226,20 +245,61 @@ function processDatabase(qpData,user)
 
   //Choosing the first song for the user interacted
   let l=0;
-  while(!qpData[l].user_id.includes(user))
+  while(l<qpData.length &&  !qpData[l].user_id.includes(user))
   {
     l++;
   }
   var temp=qpData.splice(0,l);
   qpData=qpData.concat(temp);
-
   return qpData;
 }
+
+function userControl(userPressed)
+{
+  if(userPressed==1)
+  {
+    user1Added=true;
+  }
+  else if(userPressed==2)
+  {
+    user2Added=true;
+  }
+  else if(userPressed==3)
+  {
+    user3Added=true;
+  }
+  else if(userPressed==4)
+  {
+    user4Added=true;
+  }
+}
+
+function userCheck(userPressed)
+{
+  if(userPressed==1)
+  {
+    return user1Added;
+  }
+  else if(userPressed==2)
+  {
+    return user2Added;
+  }
+  else if(userPressed==3)
+  {
+    return user3Added;
+  }
+  else if(userPressed==4)
+  {
+    return user4Added;
+  }
+}
+
 
 function getColorSequence(que)
 {
   colorArr = [];
-  for(let i=0;i<4;i++)
+  let i=0;
+  while(i<que.length && i<4)
   {
     var temp=[];
     let j=0;
@@ -264,7 +324,9 @@ function getColorSequence(que)
       j++;
     }
     colorArr.push(temp);
+    i++;
   }
   return colorArr;
 }
+
 
