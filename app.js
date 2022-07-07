@@ -32,9 +32,9 @@ const scopes = [
 
 //Initialising the SpotifyAPI node package
 var spotifyApi = new SpotifyWebApi({
-    clientId: 'e5528e5bb8b24755ad89dbc0eae5bea8',
-    clientSecret: 'c265137ac990469890c0b7e447d5ca23',
-    redirectUri: 'http://localhost:8888/callback'
+    clientId: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET,
+    redirectUri: 'https://queue-player.herokuapp.com:8888/callback'
 });
 
 var access_token;
@@ -194,7 +194,7 @@ app.post('/getTrack', (req, res) => {
 
 app.listen(8888, () =>
    console.log(
-     'HTTP Server up. Now go to http://localhost:8888/ in your browser.'
+     'HTTP Server up. Now go to https://queue-player.herokuapp.com:8888/ in your browser.'
    )
  );
 
