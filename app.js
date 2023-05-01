@@ -1,13 +1,22 @@
-//Depedency variables
 const express = require('express')
+var SpotifyWebApi = require('spotify-web-api-node');
+
 var cors = require('cors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
 var fs= require('fs');
+var path = require('path');
 var bodyParser = require("body-parser");
-var SpotifyWebApi = require('spotify-web-api-node');
 
-//Scope Definition for Spotify WebAPI calls
+var access_token;
+var af;
+var user_id=1;
+var dict = {};
+var trackID_tracker = {}
+var database = new Array();
+var jsonData = new Array();
+var trackIdCollection = new Array();
+
 const scopes = [
     'ugc-image-upload',
     'user-read-playback-state',
@@ -30,25 +39,41 @@ const scopes = [
     'user-follow-modify'
   ];
 
-//Initialising the SpotifyAPI node package
 var spotifyApi = new SpotifyWebApi({
-    clientId: process.env.CLIENT_ID,
-    clientSecret: process.env.CLIENT_SECRET,
-    redirectUri: 'https://queue-player.herokuapp.com:8888/callback'
+    clientId: '85b1c7b8639148ac8208202327d7a4cc',
+    clientSecret: 'e64bad6b6d35415192c16b69fcc3f4df',
+    redirectUri: 'http://localhost:8888/callback'
 });
 
-var access_token;
-
-//Initialising the express server
 const app = express();
 app.use(bodyParser.json());
+
+const directoryPath = './public/SpotifyData';
+
+// const files= fs.readdirSync(directoryPath)
+// console.log(files.length)
+for (let i = 0; i < 4; i++) 
+{
+  const userPath=directoryPath+'/User'+(i+1);
+  const jsons=fs.readdirSync(userPath)
+  for (let j = 0; j < jsons.length; j++)
+  {
+    var jsonBuffer=require(userPath+'/'+jsons[j]);
+    jsonData=jsonData.concat(jsonBuffer);
+  }
+  segregateDataBy100(jsonData, i+1);
+}
+
+
+// const appendData = require('./public/Final Database/multiuser.json');
+// const id_checker = require('./public/Final Database/keys_multiuser.json');
+
 const { ppid } = require('process');
 
 app.use(express.static(__dirname + '/public'))
    .use(cors())
    .use(cookieParser());
 
-//Authorization flow for the Spotify API 
 app.get('/login', (req, res) => {
     res.redirect(spotifyApi.createAuthorizeURL(scopes));
   });
@@ -74,9 +99,6 @@ spotifyApi
         spotifyApi.setAccessToken(access_token);
         spotifyApi.setRefreshToken(refresh_token);
   
-        // console.log('access_token:', access_token);
-        // console.log('refresh_token:', refresh_token);
-  
         setInterval(async () => {
           const data = await spotifyApi.refreshAccessToken();
           const access_token = data.body['access_token'];
@@ -93,240 +115,151 @@ spotifyApi
 
       if(access_token !=null)
       {
-        res.redirect('/qpInterface');
+        console.log('Access token:', access_token);
+        res.redirect('/audiofeatures');
       }
   });
 
-//Loads the client website
-app.get('/qpInterface',(req, res)=>{
-  res.sendFile(__dirname + '/public/html/qpInterface.html');   
-});
-
-//Get the Track to play as requested by the client
-app.post('/getTrackToPlay', (req, res) => {
-  var trackInfos = readDatabase();
-  var bpmData=getDatafromBPM(trackInfos, req.body.bpm);
-  var songAddition = processDatabase(bpmData, req.body.userID);
-  queue=songAddition;
-  var q=queue.shift();
-  var cr=getColorSequence(queue);
-  userControl(req.body.userID);
-  res.send({"queue": queue, "song":q, "color": cr});
-})
-
-
-// Get the track into the queue 
-app.post('/getTrackToQueue',(req, res)=>{
-  if(!userCheck(req.body.userID))
+function segregateDataBy100(jsonData,id) {
+  var trackIdCollection = new Array();
+  let count=0;
+  let j=0;
+  trackIdCollection[0]=new Array();
+  console.log(jsonData.length);
+  for (let i=0; i<jsonData.length;i++)
   {
-    var trackInfos = readDatabase();
-    var bpmData=getDatafromBPM(trackInfos, req.body.bpm);
-    var songAddition = processDatabase(bpmData, req.body.userID);
-    queue.splice(req.body.offset,queue.length-req.body.offset);
-    queue=queue.concat(songAddition);
-    var cr=getColorSequence(queue);
-    userControl(req.body.userID);
-    res.send({"queue": queue, "color": cr});
-  }
-  else
-  {
-    res.send({"queue":queue, color:cr});
-  }
-
-})
-
-// Get the track from the queue to automatically continue playing
-app.post('/continuePlaying', (req, res)=>{
-  user1Added=false;
-  user2Added=false;
-  user3Added=false;
-  user4Added=false;
-  var q=queue.shift();
-  var cr=getColorSequence(queue);
-  res.send({"queue": queue, "song":q, "color": cr});
-})
-
-//Play the song , finds the active spotify player if device id not specified
-app.post('/playback',async (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
-  const play= await spotifyApi.play({
-    "uris": req.body.song,
-  }).then(function() {
-      console.log('Playback started');
-    }, function(err) {
-      //if the user making the request is non-premium, a 403 FORBIDDEN response code will be returned
-      console.log('Something went wrong!', err);
-  });
-});
-
-// Gets the state of the active player to check if song has ended or playing
-app.get('/getState', (req, res)=> {
-    const state=spotifyApi.getMyCurrentPlaybackState()
-    .then(function(data) {
-      console.log(data.body.is_playing);
-      if(data.body.is_playing)
+    while(i<jsonData.length && jsonData[i].spotify_track_uri==null)
+    {
+      i++;
+    }
+    if(i<jsonData.length)
+    {
+      if(count==99)
       {
-        var wot=0;
-        if(wot==0 && data.body.progress_ms+1000>data.body.item.duration_ms)
-        {
-          wot=1;
-          console.log('Finished Playing: ' + data.body.item.name);
-          res.send({song:data.body.item.name,state:"ended"}); 
-        }
-        else
-        {
-          res.send({song:data.body.item.name,state:"playing"});
-        }
+        trackIdCollection[j].push(jsonData[i].spotify_track_uri.split(":")[2]);
+        j++;
+        trackIdCollection.push(new Array());
+        count=0;
       }
-    }, function(err) {
-      console.log('Something went wrong!', err);
-    });
-})
+      else
+      {
+        trackIdCollection[j].push(jsonData[i].spotify_track_uri.split(":")[2]);
+        count++;
+      }
+    }
+    
+  }
+  dict[id] = trackIdCollection;
+  return trackIdCollection;
+}
 
-//Gets the name of the song playing, just for the website
-app.post('/getTrack', (req, res) => {
-  const track=spotifyApi.getTrack(req.body.id)
-  .then(function(song) {
-    console.log(song.body.name);
-    res.send({songName:song.body.name});
-  })
-})
+app.get('/audiofeatures', (req, res) => {
+ 
+    res.setHeader('Content-Type', 'text/html'); 
+    console.log(dict[1].length)
+      let i=0; 
+      let key=1;
+      var intervalID=setInterval(async ()=> {
+      
+        var me, trk1, trk2;
+
+        me= await spotifyApi.getAudioFeaturesForTracks(dict[key][i]);
+        console.log(me.body.audio_features.length)
+        console.log(dict[key][i].length/2)
+        try{
+          trk1=await spotifyApi.getTracks(dict[key][i].slice(0, dict[key][i].length/2));
+        }
+        catch(err){
+            console.log(err)
+        }
+
+        console.log(trk1.body.tracks.length)
+        // trk2=await spotifyApi.getTracks(dict[key][i].slice(dict[key][i].length/2, dict[key][i].length));
+        // console.log(trk2.body.tracks.length)
+        // // me= await spotifyApi.getAudioFeaturesForTracks(trackIdCollection[i]);
+        // // trk1=await spotifyApi.getTracks(trackIdCollection[i].slice(0, trackIdCollection[i].length/2));
+        // // trk2=await spotifyApi.getTracks(trackIdCollection[i].slice(trackIdCollection[i].length/2, trackIdCollection[i].length));
+        // for(let j=0; j<me.body.audio_features.length;j++)
+        // {
+        //   if(me.body.audio_features[j]!=null && me.body.audio_features[j].speechiness > 0 && me.body.audio_features[j].speechiness < 0.66)
+        //   {
+        //     console.log("removed the speechiness")
+        //     // if(id_checker[me.body.audio_features[j].uri.split(":")[2]]==undefined)
+        //     if(trackID_tracker[me.body.audio_features[j].uri.split(":")[2]] == undefined) 
+        //     {
+        //       user_list=new Array();
+        //       user_list.push(key)
+        //       trackID_tracker[me.body.audio_features[j].uri.split(":")[2]] = user_list;
+        //       // id_checker[me.body.audio_features[j].uri.split(":")[2]] = 1;
+  
+        //       // // if(appendData[Math.floor(me.body.audio_features[j].tempo)]==undefined)
+        //       // {
+        //         if(j>=trk1.body.tracks.length)
+        //         {
+        //           database.push({user_id: trackID_tracker[me.body.audio_features[j].uri.split(":")[2]], track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: Math.floor(me.body.audio_features[j].tempo), danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, cluster_number:"", cluster_type:""})
+        //           // appendData[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 4, track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2],  tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+        //         }
+        //         else
+        //         {
+        //           database.push({user_id: trackID_tracker[me.body.audio_features[j].uri.split(":")[2]], track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: Math.floor(me.body.audio_features[j].tempo), danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, cluster_number:"", cluster_type:""})
+        //           // appendData[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 4, track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2],  tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+        //         }
+        //     }
+        //     else
+        //     {
+        //       if(!trackID_tracker[me.body.audio_features[j].uri.split(":")[2]].includes(key))
+        //       {
+        //         trackID_tracker[me.body.audio_features[j].uri.split(":")[2]].push(key)
+        //         if(j>=trk1.body.tracks.length)
+        //         {
+        //           database.push({user_id: trackID_tracker[me.body.audio_features[j].uri.split(":")[2]], track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: Math.floor(me.body.audio_features[j].tempo), danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, cluster_number:"", cluster_type:""})
+        //           // appendData[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 4, track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2],  tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+        //         }
+        //         else
+        //         {
+        //           database.push({user_id: trackID_tracker[me.body.audio_features[j].uri.split(":")[2]], track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: Math.floor(me.body.audio_features[j].tempo), danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, cluster_number:"", cluster_type:""})
+        //           // appendData[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 4, track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2],  tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+        //         }
+        //       }
+        //     }
+        //   }
+        // }
+        // i++;
+        // console.log("Iteration Done: "+i);
+        // if(i==dict[key].length)
+        // {
+        //   if(key==4)
+        //   {
+        //     clearInterval(intervalID);
+  
+        //     var keystring=JSON.stringify(trackID_tracker);
+        //     // var keystring=JSON.stringify(id_checker);
+        //     fs.writeFileSync('./public/Final Database/keys_multiuser.json', keystring,function(err, result) {
+        //       if(err) console.log('error', err);
+        //     });
+  
+        //     var dictstring=JSON.stringify(database);
+        //     // var dictstring=JSON.stringify(appendData);
+        //     fs.writeFile('./public/Final Database/multiuser.json', dictstring, function(err, result) {
+        //       if(err) console.log('error', err);
+        //     });
+    
+        //     return res.send("Dataset Made");
+        //   }
+        //   else
+        //   {
+        //     i=0;
+        //     key++;
+        //     console.log("User Change to ", key)
+        //   }
+
+        // }
+      }, 1000);
+});  
 
 app.listen(8888, () =>
    console.log(
-     'HTTP Server up. Now go to https://queue-player.herokuapp.com:8888/ in your browser.'
+     'HTTP Server up. Now go to http://localhost:8888/ in your browser.'
    )
  );
-
-//////////// Server Helper Functions ///////////
-
-var queue = []; 
-var colorArr = [];
-var user1Added=false;
-var user2Added=false;
-var user3Added=false;
-var user4Added=false;
-
-// Reading the JSON file data
-function readDatabase()
-{
-  var qpDataset=require("./Final Database/Final Final/qp_multiuser.json");
-  return qpDataset;
-}
-
-function getDatafromBPM(qpData, bpm)
-{
-  //Handling the case when the specified bpm is not present and then the next lowest bpm is selected
-  var qpBPMData=new Array();
-  while(qpBPMData.length == 0)
-  {
-    for(let i=0;i<qpData.length;i++)
-    {
-      if(qpData[i].tempo==bpm)
-      {
-        qpBPMData.push(qpData[i]);
-      }
-    }
-    bpm--;
-  }
-  return qpBPMData;
-}
-
-
-//Processing the JSON file data
-function processDatabase(qpData,user)
-{
-  //Include Song Selection Algorithm
-
-  //Sorting data according to danceability for now , until song selection algorithm
-  qpData.sort((first,second) => {
-      return first.danceability - second.danceability;
-  });
-
-  //Choosing the first song for the user interacted
-  let l=0;
-  while(l<qpData.length &&  !qpData[l].user_id.includes(user))
-  {
-    l++;
-  }
-  var temp=qpData.splice(0,l);
-  qpData=qpData.concat(temp);
-  return qpData;
-}
-
-function userControl(userPressed)
-{
-  if(userPressed==1)
-  {
-    user1Added=true;
-  }
-  else if(userPressed==2)
-  {
-    user2Added=true;
-  }
-  else if(userPressed==3)
-  {
-    user3Added=true;
-  }
-  else if(userPressed==4)
-  {
-    user4Added=true;
-  }
-}
-
-function userCheck(userPressed)
-{
-  if(userPressed==1)
-  {
-    return user1Added;
-  }
-  else if(userPressed==2)
-  {
-    return user2Added;
-  }
-  else if(userPressed==3)
-  {
-    return user3Added;
-  }
-  else if(userPressed==4)
-  {
-    return user4Added;
-  }
-}
-
-
-function getColorSequence(que)
-{
-  colorArr = [];
-  let i=0;
-  while(i<que.length && i<4)
-  {
-    var temp=[];
-    let j=0;
-    while(j<que[i].user_id.length)
-    {
-      if(que[i].user_id[j]==1)
-      {
-        temp.push('#FF0000');
-      }
-      else if(que[i].user_id[j]==2)
-      {
-        temp.push('#0000FF');
-      }
-      else if(que[i].user_id[j]==3)
-      {
-        temp.push('#00FF00');
-      }
-      else if(que[i].user_id[j]==4)
-      {
-        temp.push('#FFFF00');
-      }
-      j++;
-    }
-    colorArr.push(temp);
-    i++;
-  }
-  return colorArr;
-}
-
 
