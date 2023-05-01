@@ -174,86 +174,86 @@ app.get('/audiofeatures', (req, res) => {
         }
 
         console.log(trk1.body.tracks.length)
-        // trk2=await spotifyApi.getTracks(dict[key][i].slice(dict[key][i].length/2, dict[key][i].length));
-        // console.log(trk2.body.tracks.length)
-        // // me= await spotifyApi.getAudioFeaturesForTracks(trackIdCollection[i]);
-        // // trk1=await spotifyApi.getTracks(trackIdCollection[i].slice(0, trackIdCollection[i].length/2));
-        // // trk2=await spotifyApi.getTracks(trackIdCollection[i].slice(trackIdCollection[i].length/2, trackIdCollection[i].length));
-        // for(let j=0; j<me.body.audio_features.length;j++)
-        // {
-        //   if(me.body.audio_features[j]!=null && me.body.audio_features[j].speechiness > 0 && me.body.audio_features[j].speechiness < 0.66)
-        //   {
-        //     console.log("removed the speechiness")
-        //     // if(id_checker[me.body.audio_features[j].uri.split(":")[2]]==undefined)
-        //     if(trackID_tracker[me.body.audio_features[j].uri.split(":")[2]] == undefined) 
-        //     {
-        //       user_list=new Array();
-        //       user_list.push(key)
-        //       trackID_tracker[me.body.audio_features[j].uri.split(":")[2]] = user_list;
-        //       // id_checker[me.body.audio_features[j].uri.split(":")[2]] = 1;
+        trk2=await spotifyApi.getTracks(dict[key][i].slice(dict[key][i].length/2, dict[key][i].length));
+        console.log(trk2.body.tracks.length)
+        // me= await spotifyApi.getAudioFeaturesForTracks(trackIdCollection[i]);
+        // trk1=await spotifyApi.getTracks(trackIdCollection[i].slice(0, trackIdCollection[i].length/2));
+        // trk2=await spotifyApi.getTracks(trackIdCollection[i].slice(trackIdCollection[i].length/2, trackIdCollection[i].length));
+        for(let j=0; j<me.body.audio_features.length;j++)
+        {
+          if(me.body.audio_features[j]!=null && me.body.audio_features[j].speechiness > 0 && me.body.audio_features[j].speechiness < 0.66)
+          {
+            console.log("removed the speechiness")
+            // if(id_checker[me.body.audio_features[j].uri.split(":")[2]]==undefined)
+            if(trackID_tracker[me.body.audio_features[j].uri.split(":")[2]] == undefined) 
+            {
+              user_list=new Array();
+              user_list.push(key)
+              trackID_tracker[me.body.audio_features[j].uri.split(":")[2]] = user_list;
+              // id_checker[me.body.audio_features[j].uri.split(":")[2]] = 1;
   
-        //       // // if(appendData[Math.floor(me.body.audio_features[j].tempo)]==undefined)
-        //       // {
-        //         if(j>=trk1.body.tracks.length)
-        //         {
-        //           database.push({user_id: trackID_tracker[me.body.audio_features[j].uri.split(":")[2]], track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: Math.floor(me.body.audio_features[j].tempo), danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, cluster_number:"", cluster_type:""})
-        //           // appendData[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 4, track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2],  tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
-        //         }
-        //         else
-        //         {
-        //           database.push({user_id: trackID_tracker[me.body.audio_features[j].uri.split(":")[2]], track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: Math.floor(me.body.audio_features[j].tempo), danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, cluster_number:"", cluster_type:""})
-        //           // appendData[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 4, track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2],  tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
-        //         }
-        //     }
-        //     else
-        //     {
-        //       if(!trackID_tracker[me.body.audio_features[j].uri.split(":")[2]].includes(key))
-        //       {
-        //         trackID_tracker[me.body.audio_features[j].uri.split(":")[2]].push(key)
-        //         if(j>=trk1.body.tracks.length)
-        //         {
-        //           database.push({user_id: trackID_tracker[me.body.audio_features[j].uri.split(":")[2]], track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: Math.floor(me.body.audio_features[j].tempo), danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, cluster_number:"", cluster_type:""})
-        //           // appendData[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 4, track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2],  tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
-        //         }
-        //         else
-        //         {
-        //           database.push({user_id: trackID_tracker[me.body.audio_features[j].uri.split(":")[2]], track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: Math.floor(me.body.audio_features[j].tempo), danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, cluster_number:"", cluster_type:""})
-        //           // appendData[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 4, track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2],  tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
-        //         }
-        //       }
-        //     }
-        //   }
-        // }
-        // i++;
-        // console.log("Iteration Done: "+i);
-        // if(i==dict[key].length)
-        // {
-        //   if(key==4)
-        //   {
-        //     clearInterval(intervalID);
+              // // if(appendData[Math.floor(me.body.audio_features[j].tempo)]==undefined)
+              // {
+                if(j>=trk1.body.tracks.length)
+                {
+                  database.push({user_id: trackID_tracker[me.body.audio_features[j].uri.split(":")[2]], track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: Math.floor(me.body.audio_features[j].tempo), danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, cluster_number:"", cluster_type:""})
+                  // appendData[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 4, track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2],  tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+                }
+                else
+                {
+                  database.push({user_id: trackID_tracker[me.body.audio_features[j].uri.split(":")[2]], track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: Math.floor(me.body.audio_features[j].tempo), danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, cluster_number:"", cluster_type:""})
+                  // appendData[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 4, track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2],  tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+                }
+            }
+            else
+            {
+              if(!trackID_tracker[me.body.audio_features[j].uri.split(":")[2]].includes(key))
+              {
+                trackID_tracker[me.body.audio_features[j].uri.split(":")[2]].push(key)
+                if(j>=trk1.body.tracks.length)
+                {
+                  database.push({user_id: trackID_tracker[me.body.audio_features[j].uri.split(":")[2]], track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: Math.floor(me.body.audio_features[j].tempo), danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, cluster_number:"", cluster_type:""})
+                  // appendData[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 4, track_name: trk2.body.tracks[j-trk1.body.tracks.length].name, track_id: me.body.audio_features[j].uri.split(":")[2],  tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+                }
+                else
+                {
+                  database.push({user_id: trackID_tracker[me.body.audio_features[j].uri.split(":")[2]], track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2], tempo: Math.floor(me.body.audio_features[j].tempo), danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, cluster_number:"", cluster_type:""})
+                  // appendData[Math.floor(me.body.audio_features[j].tempo)] = new Array({user_id: 4, track_name: trk1.body.tracks[j].name, track_id: me.body.audio_features[j].uri.split(":")[2],  tempo: me.body.audio_features[j].tempo, danceability: me.body.audio_features[j].danceability, energy: me.body.audio_features[j].energy, liveness: me.body.audio_features[j].liveness, valence: me.body.audio_features[j].valence, mode: me.body.audio_features[j].mode, time_signature: me.body.audio_features[j].time_signature});
+                }
+              }
+            }
+          }
+        }
+        i++;
+        console.log("Iteration Done: "+i);
+        if(i==dict[key].length)
+        {
+          if(key==4)
+          {
+            clearInterval(intervalID);
   
-        //     var keystring=JSON.stringify(trackID_tracker);
-        //     // var keystring=JSON.stringify(id_checker);
-        //     fs.writeFileSync('./public/Final Database/keys_multiuser.json', keystring,function(err, result) {
-        //       if(err) console.log('error', err);
-        //     });
+            var keystring=JSON.stringify(trackID_tracker);
+            // var keystring=JSON.stringify(id_checker);
+            fs.writeFileSync('./public/Final Database/keys_multiuser.json', keystring,function(err, result) {
+              if(err) console.log('error', err);
+            });
   
-        //     var dictstring=JSON.stringify(database);
-        //     // var dictstring=JSON.stringify(appendData);
-        //     fs.writeFile('./public/Final Database/multiuser.json', dictstring, function(err, result) {
-        //       if(err) console.log('error', err);
-        //     });
+            var dictstring=JSON.stringify(database);
+            // var dictstring=JSON.stringify(appendData);
+            fs.writeFile('./public/Final Database/multiuser.json', dictstring, function(err, result) {
+              if(err) console.log('error', err);
+            });
     
-        //     return res.send("Dataset Made");
-        //   }
-        //   else
-        //   {
-        //     i=0;
-        //     key++;
-        //     console.log("User Change to ", key)
-        //   }
+            return res.send("Dataset Made");
+          }
+          else
+          {
+            i=0;
+            key++;
+            console.log("User Change to ", key)
+          }
 
-        // }
+        }
       }, 1000);
 });  
 
