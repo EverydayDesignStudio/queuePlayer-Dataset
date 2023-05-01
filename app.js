@@ -254,7 +254,7 @@ app.get('/audiofeatures', (req, res) => {
           }
 
         }
-      }, 1000);
+      }, 1500);
 });  
 
 app.listen(8888, () =>
