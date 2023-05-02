@@ -40,8 +40,8 @@ const scopes = [
   ];
 
 var spotifyApi = new SpotifyWebApi({
-    clientId: '85b1c7b8639148ac8208202327d7a4cc',
-    clientSecret: 'e64bad6b6d35415192c16b69fcc3f4df',
+    clientId: '63045e5299f044cd984d75bb1a45e1ee',
+    clientSecret: '9e7d93e684f1464a8662292390ac222f',
     redirectUri: 'http://localhost:8888/callback'
 });
 
@@ -164,16 +164,12 @@ app.get('/audiofeatures', (req, res) => {
         var me, trk1, trk2;
 
         me= await spotifyApi.getAudioFeaturesForTracks(dict[key][i]);
-        console.log(me.body.audio_features.length)
-        console.log(dict[key][i].length/2)
         try{
           trk1=await spotifyApi.getTracks(dict[key][i].slice(0, dict[key][i].length/2));
         }
         catch(err){
             console.log(err)
         }
-
-        console.log(trk1.body.tracks.length)
         trk2=await spotifyApi.getTracks(dict[key][i].slice(dict[key][i].length/2, dict[key][i].length));
         console.log(trk2.body.tracks.length)
         // me= await spotifyApi.getAudioFeaturesForTracks(trackIdCollection[i]);
@@ -183,7 +179,6 @@ app.get('/audiofeatures', (req, res) => {
         {
           if(me.body.audio_features[j]!=null && me.body.audio_features[j].speechiness > 0 && me.body.audio_features[j].speechiness < 0.66)
           {
-            console.log("removed the speechiness")
             // if(id_checker[me.body.audio_features[j].uri.split(":")[2]]==undefined)
             if(trackID_tracker[me.body.audio_features[j].uri.split(":")[2]] == undefined) 
             {
