@@ -52,17 +52,18 @@ const directoryPath = './public/NewSpotifyData';
 
 // const files= fs.readdirSync(directoryPath)
 // console.log(files.length)
-for (let i = 0; i < 3; i++) 
-{
-  const userPath=directoryPath+'/User'+(i+1);
+// for (let i = 0; i < 3; i++) 
+// {
+  // const userPath=directoryPath+'/User'+(i+1);
+  const userPath=directoryPath+'/User1'                   //Change folder name to corresponding user number
   const jsons=fs.readdirSync(userPath)
   for (let j = 0; j < jsons.length; j++)
   {
     var jsonBuffer=require(userPath+'/'+jsons[j]);
     jsonData=jsonData.concat(jsonBuffer);
   }
-  segregateDataBy100(jsonData, i+1);
-}
+  segregateDataBy100(jsonData, 1);
+// }
 
 
 // const appendData = require('./public/Final Database/multiuser.json');
@@ -125,7 +126,6 @@ function segregateDataBy100(jsonData,id) {
   let count=0;
   let j=0;
   trackIdCollection[0]=new Array();
-  console.log(jsonData.length);
   for (let i=0; i<jsonData.length;i++)
   {
     while(i<jsonData.length && jsonData[i].spotify_track_uri==null)
@@ -161,7 +161,6 @@ app.get('/audiofeatures', (req, res) => {
       var intervalID=setInterval(async ()=> {
       
         var me, trk1, trk2;
-        intervalDuration=1500;
         me=await spotifyApi.getAudioFeaturesForTracks(dict[key][i]);
         try{
           trk1=await spotifyApi.getTracks(dict[key][i].slice(0, dict[key][i].length/2));
@@ -242,7 +241,6 @@ app.get('/audiofeatures', (req, res) => {
           }
           else
           {
-            intervalDuration=60000;
             i=0;
             key++;
             console.log("User Change to ", key)
