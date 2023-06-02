@@ -1,6 +1,5 @@
 const express = require('express')
 var SpotifyWebApi = require('spotify-web-api-node');
-
 var cors = require('cors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
@@ -16,6 +15,7 @@ var trackID_tracker = {}
 var database = new Array();
 var jsonData = new Array();
 var trackIdCollection = new Array();
+var intervalDuration = 1500;
 
 const scopes = [
     'ugc-image-upload',
@@ -48,11 +48,11 @@ var spotifyApi = new SpotifyWebApi({
 const app = express();
 app.use(bodyParser.json());
 
-const directoryPath = './public/SpotifyData';
+const directoryPath = './public/NewSpotifyData';
 
 // const files= fs.readdirSync(directoryPath)
 // console.log(files.length)
-for (let i = 0; i < 4; i++) 
+for (let i = 0; i < 3; i++) 
 {
   const userPath=directoryPath+'/User'+(i+1);
   const jsons=fs.readdirSync(userPath)
@@ -156,14 +156,13 @@ function segregateDataBy100(jsonData,id) {
 app.get('/audiofeatures', (req, res) => {
  
     res.setHeader('Content-Type', 'text/html'); 
-    console.log(dict[1].length)
       let i=0; 
       let key=1;
       var intervalID=setInterval(async ()=> {
       
         var me, trk1, trk2;
-
-        me= await spotifyApi.getAudioFeaturesForTracks(dict[key][i]);
+        intervalDuration=1500;
+        me=await spotifyApi.getAudioFeaturesForTracks(dict[key][i]);
         try{
           trk1=await spotifyApi.getTracks(dict[key][i].slice(0, dict[key][i].length/2));
         }
@@ -171,7 +170,7 @@ app.get('/audiofeatures', (req, res) => {
             console.log(err)
         }
         trk2=await spotifyApi.getTracks(dict[key][i].slice(dict[key][i].length/2, dict[key][i].length));
-        console.log(trk2.body.tracks.length)
+
         // me= await spotifyApi.getAudioFeaturesForTracks(trackIdCollection[i]);
         // trk1=await spotifyApi.getTracks(trackIdCollection[i].slice(0, trackIdCollection[i].length/2));
         // trk2=await spotifyApi.getTracks(trackIdCollection[i].slice(trackIdCollection[i].length/2, trackIdCollection[i].length));
@@ -243,13 +242,14 @@ app.get('/audiofeatures', (req, res) => {
           }
           else
           {
+            intervalDuration=60000;
             i=0;
             key++;
             console.log("User Change to ", key)
           }
 
         }
-      }, 1500);
+      }, intervalDuration);
 });  
 
 app.listen(8888, () =>
