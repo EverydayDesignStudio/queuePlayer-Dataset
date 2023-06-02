@@ -8,12 +8,11 @@ var path = require('path');
 var bodyParser = require("body-parser");
 
 var access_token;
-var user_id=1;
 var dict = {};
 var trackID_tracker = {}
 var database = new Array();
 var jsonData = new Array();
-var intervalDuration = 1500;
+var intervalDuration = 1000;
 
 const scopes = [
     'ugc-image-upload',
@@ -146,7 +145,6 @@ function segregateDataBy100(jsonData,id) {
         count++;
       }
     }
-    
   }
   dict[id] = trackIdCollection;
   return trackIdCollection;
