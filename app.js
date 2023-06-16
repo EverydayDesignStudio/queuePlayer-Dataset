@@ -62,10 +62,10 @@ for (let i = 0; i < 4; i++)
   segregateDataBy100(jsonData, i+1);
 }
 
-const appendData = require('./Final Database/Final Final/qp_multiuser.json');
-console.log(appendData.length)
-const id_checker = require('./Final Database/Final Final/qp_keys_multiuser.json');
-console.log(Object.keys(id_checker).length);
+// const appendData = require('./Final Database/Final Final/qp_multiuser.json');
+// console.log(appendData.length)
+// const id_checker = require('./Final Database/Final Final/qp_keys_multiuser.json');
+// console.log(Object.keys(id_checker).length);
 
 const { ppid } = require('process');
 
